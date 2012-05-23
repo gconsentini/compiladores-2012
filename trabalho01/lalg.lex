@@ -76,7 +76,10 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 
 "="|">="|">"|"<>"|"<="|"<"   printf("token %d: %s-operador-comp\n", num_token++,yytext);
 
-"+"|"-"|"*"|"/" printf("token %d: %s-operador-mat\n",num_token++, yytext);
+"+" printf("token %d: %s-operador-mat-soma\n",num_token++, yytext);
+"-" printf("token %d: %s-operador-mat-sub\n",num_token++, yytext);
+"*" printf("token %d: %s-operador-mat-mult\n",num_token++, yytext);
+"/" printf("token %d: %s-operador-mat-div\n",num_token++, yytext);
 
 ";"   printf("token %d: %s-;\n", num_token++,yytext);
 ","   printf("token %d: %s-,\n", num_token++,yytext);
@@ -122,34 +125,5 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 
 %%
 
-int main()
-{
- register int i=0;
+int yywrap(void){}
 
- /*Inicializa o vetor de palavras reservadas
-   por possuir poucas palavras prefiriu-se atribuí-las
-   dinamicamente do que lê-las de um arquivos*/
- palavras_reservadas = (char **) malloc(NUM_RESERVADAS*sizeof(char *));
- for(i=0; i<NUM_RESERVADAS; i++)
-   palavras_reservadas[i] = (char *) malloc(TAM_MAX_PALAVRA*sizeof(char));
-
- strcpy(palavras_reservadas[0],"begin");
- strcpy(palavras_reservadas[1],"const");
- strcpy(palavras_reservadas[2],"else");
- strcpy(palavras_reservadas[3],"end");
- strcpy(palavras_reservadas[4],"if");
- strcpy(palavras_reservadas[5],"integer");
- strcpy(palavras_reservadas[6],"procedure");
- strcpy(palavras_reservadas[7],"program");
- strcpy(palavras_reservadas[8],"readln");
- strcpy(palavras_reservadas[9],"real");
- strcpy(palavras_reservadas[10],"repeat");
- strcpy(palavras_reservadas[11],"then");
- strcpy(palavras_reservadas[12],"until");
- strcpy(palavras_reservadas[13],"var");
- strcpy(palavras_reservadas[14],"while");
- strcpy(palavras_reservadas[15],"writeln");
-
- yylex(); /*começa a rotina do lexico*/
- return 0;
-}
