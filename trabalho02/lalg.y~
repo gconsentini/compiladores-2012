@@ -1,0 +1,95 @@
+%{
+	#define YYSTYPE double
+	#define NUM_RESERVADAS 16
+	#define TAM_MAX_PALAVRA 16
+	#include <math.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
+	int yylex (void);
+	void yyerror (char *);
+	char **palavras_reservadas;
+%}
+
+%token id
+%token num_integer
+%token num_real
+%token begin
+%token constante
+%token senao
+%token end
+%token se
+%token integer
+%token procedure
+%token program
+%token readln
+%token real
+%token repeat
+%token then
+%token until
+%token var
+%token enquanto
+%token writeln
+%token ponto_virgula ";"
+%token virgula ","
+%token atribuicao ":="
+%token doispontos ":"
+%token ponto "."
+%token abre_par "("
+%token fecha_par ")"
+%token operador-mat-soma "+"
+%token operador-mat-sub "-"
+%token operador-mat-mult "*"
+%token operador-mat-div "/"
+%token operador-comp-igual "="
+%token operador-comp-maiorigual ">="
+%token operador-comp-maior ">"
+%token operador-comp-diff "<>"
+%token operador-comp-menorigual "<="
+%token operador-comp-menor "<"  
+
+
+%% /* Grammar rules and actions follow.  */
+
+/* programa::= program ident ; <corpo> . */
+programa: program id ponto_virgula corpo ponto ;
+corpo: enquanto repeat senao;
+%%
+
+int main (void)
+{
+register int i=0;
+
+	/*Inicializa o vetor de palavras reservadas
+	por possuir poucas palavras prefiriu-se atribuí-las
+	dinamicamente do que lê-las de um arquivos*/
+	palavras_reservadas = (char **) malloc(NUM_RESERVADAS*sizeof(char *));
+	for(i=0; i<NUM_RESERVADAS; i++)
+	palavras_reservadas[i] = (char *) malloc(TAM_MAX_PALAVRA*sizeof(char));
+
+	strcpy(palavras_reservadas[0],"begin");
+	strcpy(palavras_reservadas[1],"const");
+	strcpy(palavras_reservadas[2],"else");
+	strcpy(palavras_reservadas[3],"end");
+	strcpy(palavras_reservadas[4],"if");
+	strcpy(palavras_reservadas[5],"integer");
+	strcpy(palavras_reservadas[6],"procedure");
+	strcpy(palavras_reservadas[7],"program");
+	strcpy(palavras_reservadas[8],"readln");
+	strcpy(palavras_reservadas[9],"real");
+	strcpy(palavras_reservadas[10],"repeat");
+	strcpy(palavras_reservadas[11],"then");
+	strcpy(palavras_reservadas[12],"until");
+	strcpy(palavras_reservadas[13],"var");
+	strcpy(palavras_reservadas[14],"while");
+	strcpy(palavras_reservadas[15],"writeln");
+
+	yyparse();
+	printf ( "Parse Completed\n" );
+	return 0;
+}
+
+void yyerror (char *s)
+{
+fprintf (stderr, "%s\n", s);
+}
