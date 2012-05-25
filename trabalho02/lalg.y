@@ -56,8 +56,8 @@ programa: program_ id ponto_virgula corpo ponto;
 corpo: dc begin_ comandos end_;
 dc: dc_c dc_v dc_p;
 dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c;
-dc_v: | var_ variaves doispontos tipo_var ponto_virgula dc_v;
-tipo_var: real | integer;
+dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v;
+tipo_var: real_ | integer_;
 variaveis: id mais_var;
 mais_var: | virgula variaveis;
 dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
@@ -74,7 +74,7 @@ comandos: | cmd ponto_virgula comandos;
 cmd: readln_ abre_par variaveis fecha_par | 
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
-	if_ condicao then_ cmd pfalsa |
+	if_ condicao then_ cmd pfalse |
 	id atribuicao expressao |
 	id lista_arg |
 	begin_ comandos end_;
@@ -93,7 +93,7 @@ op_ad: 	operador_mat_soma |
 		operador_mat_sub;
 termo: op_un fator mais_fatores;
 mais_fatores: | op_mult fator mais_fatores;
-op_mul:  	operador_mat_mult | 
+op_mult:  	operador_mat_mult | 
 			operador_mat_div;
 fator: id | numero | abre_par expressao fecha_par;
 numero: num_integer | num_real;
@@ -108,7 +108,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-	yydebug = 1;
+	/*yydebug = 1; */
 	yyparse();
 	printf ( "Parse Completed\n" );
 	return 0;

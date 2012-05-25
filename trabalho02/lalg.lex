@@ -103,7 +103,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 				if(pos==12) return(until_);
 				if(pos==13) return(var_);
 				if(pos==14) return(while_);
-				if(pos==15) return(while_);
+				if(pos==15) return(writeln_);
 			}
    	}
 
