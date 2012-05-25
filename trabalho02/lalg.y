@@ -1,5 +1,6 @@
 %{
 	#define YYSTYPE double
+	#define YYDEBUG 1 /* For Debugging */
 	#define NUM_RESERVADAS 16
 	#define TAM_MAX_PALAVRA 16
 	#include <math.h>
@@ -55,9 +56,14 @@ programa: program id ponto_virgula corpo ponto ;
 corpo: enquanto repeat senao;
 %%
 
-int main (void)
+int main (int argc, char *argv[])
 {
-register int i=0;
+	register int i=0;
+	extern FILE *yyin;
+	++argv; 
+	--argc;
+	yyin = fopen( argv[0], "r" );
+	yydebug = 1;
 	yyparse();
 	printf ( "Parse Completed\n" );
 	return 0;

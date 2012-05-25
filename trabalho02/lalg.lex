@@ -1,6 +1,7 @@
 %{
  #include<stdio.h>
  #include<string.h>
+ #include "lalg.tab.h"
 
  #define NUM_RESERVADAS 16
  #define TAM_MAX_PALAVRA 16
@@ -14,11 +15,15 @@
 
 DIGIT [0-9]
 IDENT [a-zA-Z][a-zA-Z0-9]*
-	int num_lines = 1, num_token = 1;
+	int num_lines = 1, num_token = 1, inibusca=1;
 	char **palavras_reservadas;
-	/*Inicializa o vetor de palavras reservadas
+
+ int iniciaListaPalavras()
+ {
+ /*Inicializa o vetor de palavras reservadas
 	por possuir poucas palavras prefiriu-se atribuí-las
 	dinamicamente do que lê-las de um arquivos*/
+	int i;
 	palavras_reservadas = (char **) malloc(NUM_RESERVADAS*sizeof(char *));
 	for(i=0; i<NUM_RESERVADAS; i++)
 	palavras_reservadas[i] = (char *) malloc(TAM_MAX_PALAVRA*sizeof(char));
@@ -38,6 +43,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 	strcpy(palavras_reservadas[13],"var");
 	strcpy(palavras_reservadas[14],"while");
 	strcpy(palavras_reservadas[15],"writeln");
+ }
  /**
    * Função que busca no vetor de palavras reservadas o identificador atual
    * utilizando busca binária.
@@ -54,6 +60,11 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
    int inf = 0;
    int sup = tamanho-1;
    int meio;
+   inibusca=1;
+	if(inibusca==1){
+		iniciaListaPalavras();
+		inibusca=0;
+	}
 
    while (inf <= sup)
    {
@@ -70,20 +81,26 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 %%
 
 {IDENT} {
+			printf("Busca Iniciada...");
           	if(strlen(yytext) > TAM_MAX_ID)
        	printf("token %d: %s-ERRO\nError at line %d: Max id length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-     	if(buscaBinaria(palavras_reservadas,yytext,16)==-1)
+     	if(buscaBinaria(palavras_reservadas,yytext,16)==-1){
               	printf("token %d: %s-id\n",num_token++, yytext);
-          	else
+				return(id);
+          	}else{
               	printf("token %d: %s-%s\n",num_token++, yytext,yytext);
+				return(id);
+			}
    	}
 
 {DIGIT}+  {
        	if(strlen(yytext) > MAXLEN_INTEGER)
          	printf("token %d: %s-ERRO\nError at line %d: Max integer length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-       	else
+       	else{
          	printf("token %d: %s-num_integer\n",num_token++,yytext);
-     	}
+			return(num_integer);
+		}
+     }
 
 {DIGIT}+"."{DIGIT}+ {
                  	int n_dot = strchr(yytext,'.') - yytext;
@@ -91,9 +108,11 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
                    	printf("token %d: %s-ERRO\nError at line %d: Max integer part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
                  	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART)
                    	printf("token %d: %s-ERRO\nError at line %d: Max decimal part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
-                 	else
-                   	printf("token %d: %s-num_real\n",num_token++,yytext);
-               	}
+                 	else{
+						printf("token %d: %s-num_real\n",num_token++,yytext);
+						return(num_real);
+					}
+				}
 
 
 "="|">="|">"|"<>"|"<="|"<"   printf("token %d: %s-operador-comp\n", num_token++,yytext);

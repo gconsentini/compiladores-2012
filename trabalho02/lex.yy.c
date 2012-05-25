@@ -483,6 +483,7 @@ char *yytext;
 #line 2 "lalg.lex"
  #include<stdio.h>
  #include<string.h>
+ #include "lalg.tab.h"
 
  #define NUM_RESERVADAS 16
  #define TAM_MAX_PALAVRA 16
@@ -492,11 +493,14 @@ char *yytext;
  /*IEEE 754-2008 - alterada para ausencia de sinal*/
  #define MAXLEN_FLOAT_INTPART 5
  #define MAXLEN_FLOAT_DECPART 6
-int num_lines = 1, num_token = 1;
+int num_lines = 1, num_token = 1, inibusca=1;
 char **palavras_reservadas;
+int iniciaListaPalavras()
+{
 /*Inicializa o vetor de palavras reservadas
 por possuir poucas palavras prefiriu-se atribuí-las
 dinamicamente do que lê-las de um arquivos*/
+int i;
 palavras_reservadas = (char **) malloc(NUM_RESERVADAS*sizeof(char *));
 for(i=0; i<NUM_RESERVADAS; i++)
 palavras_reservadas[i] = (char *) malloc(TAM_MAX_PALAVRA*sizeof(char));
@@ -516,6 +520,7 @@ strcpy(palavras_reservadas[12],"until");
 strcpy(palavras_reservadas[13],"var");
 strcpy(palavras_reservadas[14],"while");
 strcpy(palavras_reservadas[15],"writeln");
+}
 /**
 * Função que busca no vetor de palavras reservadas o identificador atual
 * utilizando busca binária.
@@ -532,6 +537,11 @@ int buscaBinaria (char **palavras_reservadas, char* ident, int tamanho)
 int inf = 0;
 int sup = tamanho-1;
 int meio;
+inibusca=1;
+if(inibusca==1){
+iniciaListaPalavras();
+inibusca=0;
+}
 while (inf <= sup)
 {
 meio = (inf + sup)/2;
@@ -544,7 +554,7 @@ sup = meio-1;
 }
 return -1;
 }
-#line 548 "lex.yy.c"
+#line 558 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -731,10 +741,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 70 "lalg.lex"
+#line 81 "lalg.lex"
 
 
-#line 738 "lex.yy.c"
+#line 748 "lex.yy.c"
 
 	if ( !(yy_init) )
 		{
@@ -819,113 +829,121 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 72 "lalg.lex"
+#line 83 "lalg.lex"
 {
+			printf("Busca Iniciada...");
           	if(strlen(yytext) > TAM_MAX_ID)
        	printf("token %d: %s-ERRO\nError at line %d: Max id length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-     	if(buscaBinaria(palavras_reservadas,yytext,16)==-1)
+     	if(buscaBinaria(palavras_reservadas,yytext,16)==-1){
               	printf("token %d: %s-id\n",num_token++, yytext);
-          	else
+				return(id);
+          	}else{
               	printf("token %d: %s-%s\n",num_token++, yytext,yytext);
+				return(id);
+			}
    	}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 81 "lalg.lex"
+#line 96 "lalg.lex"
 {
        	if(strlen(yytext) > MAXLEN_INTEGER)
          	printf("token %d: %s-ERRO\nError at line %d: Max integer length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-       	else
+       	else{
          	printf("token %d: %s-num_integer\n",num_token++,yytext);
-     	}
+			return(num_integer);
+		}
+     }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 88 "lalg.lex"
+#line 105 "lalg.lex"
 {
                  	int n_dot = strchr(yytext,'.') - yytext;
                  	if(n_dot > MAXLEN_FLOAT_INTPART)
                    	printf("token %d: %s-ERRO\nError at line %d: Max integer part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
                  	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART)
                    	printf("token %d: %s-ERRO\nError at line %d: Max decimal part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
-                 	else
-                   	printf("token %d: %s-num_real\n",num_token++,yytext);
-               	}
+                 	else{
+						printf("token %d: %s-num_real\n",num_token++,yytext);
+						return(num_real);
+					}
+				}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 99 "lalg.lex"
+#line 118 "lalg.lex"
 printf("token %d: %s-operador-comp\n", num_token++,yytext);
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 101 "lalg.lex"
+#line 120 "lalg.lex"
 printf("token %d: %s-operador-mat-soma\n",num_token++, yytext);
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 102 "lalg.lex"
+#line 121 "lalg.lex"
 printf("token %d: %s-operador-mat-sub\n",num_token++, yytext);
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 103 "lalg.lex"
+#line 122 "lalg.lex"
 printf("token %d: %s-operador-mat-mult\n",num_token++, yytext);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 104 "lalg.lex"
+#line 123 "lalg.lex"
 printf("token %d: %s-operador-mat-div\n",num_token++, yytext);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 106 "lalg.lex"
+#line 125 "lalg.lex"
 printf("token %d: %s-;\n", num_token++,yytext);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 107 "lalg.lex"
+#line 126 "lalg.lex"
 printf("token %d: %s-,\n", num_token++,yytext);
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 108 "lalg.lex"
+#line 127 "lalg.lex"
 printf("token %d: %s-:=\n", num_token++,yytext);
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 109 "lalg.lex"
+#line 128 "lalg.lex"
 printf("token %d: %s-:\n", num_token++,yytext);
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 110 "lalg.lex"
+#line 129 "lalg.lex"
 printf("token %d: %s-.\n", num_token++,yytext);
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 111 "lalg.lex"
+#line 130 "lalg.lex"
 printf("token %d: %s-(\n", num_token++,yytext);
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 112 "lalg.lex"
+#line 131 "lalg.lex"
 printf("token %d: %s-)\n", num_token++,yytext);
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 114 "lalg.lex"
+#line 133 "lalg.lex"
 num_lines++; /*conta o numero de linhas*/
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 116 "lalg.lex"
+#line 135 "lalg.lex"
 /*consome espacos em branco, tabulacao*/
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 118 "lalg.lex"
+#line 137 "lalg.lex"
 { /*consome comentario de multiplas linhas*/
  	register int c;
 	 
@@ -944,36 +962,36 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 134 "lalg.lex"
+#line 153 "lalg.lex"
 {
             printf("token %d: %s-ERRO\nError at line %d: Identifier malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 138 "lalg.lex"
+#line 157 "lalg.lex"
 {
    				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 142 "lalg.lex"
+#line 161 "lalg.lex"
 { 
    				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 146 "lalg.lex"
+#line 165 "lalg.lex"
 printf( "token %d: %s-ERRO\nError at line %d: Unrecognized character : %s\n",num_token++,yytext,num_lines, yytext);
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 148 "lalg.lex"
+#line 167 "lalg.lex"
 ECHO;
 	YY_BREAK
-#line 977 "lex.yy.c"
+#line 995 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1971,7 +1989,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 148 "lalg.lex"
+#line 167 "lalg.lex"
 
 
 

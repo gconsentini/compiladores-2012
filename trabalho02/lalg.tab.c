@@ -69,6 +69,7 @@
 #line 1 "lalg.y"
 
 	#define YYSTYPE double
+	#define YYDEBUG 1 /* For Debugging */
 	#define NUM_RESERVADAS 16
 	#define TAM_MAX_PALAVRA 16
 	#include <math.h>
@@ -80,7 +81,7 @@
 
 
 /* Line 268 of yacc.c  */
-#line 84 "lalg.tab.c"
+#line 85 "lalg.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -150,7 +151,7 @@ typedef int YYSTYPE;
 
 
 /* Line 343 of yacc.c  */
-#line 154 "lalg.tab.c"
+#line 155 "lalg.tab.c"
 
 #ifdef short
 # undef short
@@ -440,7 +441,7 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    54,    54,    55
+       0,    55,    55,    56
 };
 #endif
 
@@ -1374,7 +1375,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1378 "lalg.tab.c"
+#line 1379 "lalg.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1605,12 +1606,17 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 56 "lalg.y"
+#line 57 "lalg.y"
 
 
-int main (void)
+int main (int argc, char *argv[])
 {
-register int i=0;
+	register int i=0;
+	extern FILE *yyin;
+	++argv; 
+	--argc;
+	yyin = fopen( argv[0], "r" );
+	yydebug = 1;
 	yyparse();
 	printf ( "Parse Completed\n" );
 	return 0;
