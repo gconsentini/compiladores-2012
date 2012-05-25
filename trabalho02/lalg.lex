@@ -17,6 +17,7 @@ DIGIT [0-9]
 IDENT [a-zA-Z][a-zA-Z0-9]*
 	int num_lines = 1, num_token = 1, inibusca=1;
 	char **palavras_reservadas;
+	char err_msg[200];
 
  void iniciaListaPalavras()
  {
@@ -120,8 +121,10 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 
 {DIGIT}+"."{DIGIT}+ {
                  	int n_dot = strchr(yytext,'.') - yytext;
-                 	if(n_dot > MAXLEN_FLOAT_INTPART)
-                   	printf("token %d: %s-ERRO\nError at line %d: Max integer part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
+                 	if(n_dot > MAXLEN_FLOAT_INTPART){
+						sprintf(err_msg,"ERROR: Error at line %d: Max integer part length of real number exceeded: %s\n",num_lines,yytext);
+						yyerror(err_msg);
+					}
                  	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART)
                    	printf("token %d: %s-ERRO\nError at line %d: Max decimal part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
                  	else{
@@ -172,19 +175,23 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
    }
 
 ({IDENT}[^0-9\n\t ;{\/\*\+\-<>"<="">=""<>"\)=\.\:\,\(":="]*)+ {
-            printf("token %d: %s-ERRO\nError at line %d: Identifier malformed %s\n",num_token++,yytext,num_lines,yytext);
+            sprintf(err_msg,"ERROR: Error at line %d: Identifier malformed %s",num_lines,yytext);
+			yyerror(err_msg);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]+)+{DIGIT}*  {
-   				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
+   				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
+				 yyerror(err_msg);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
-   				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
+   				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
+				 yyerror(err_msg);
 }
 
-. printf( "token %d: %s-ERRO\nError at line %d: Unrecognized character : %s\n",num_token++,yytext,num_lines, yytext);
-
+. {				 sprintf(err_msg,"ERROR: Error at line %d: Unrecognized character : %s",num_lines, yytext);
+				 yyerror(err_msg);
+ }
 %%
 
 int yywrap(void){}
