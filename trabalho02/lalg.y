@@ -52,8 +52,53 @@
 %% /* Grammar rules and actions follow.  */
 
 /* programa::= program ident ; <corpo> . */
-programa: program_ id ponto_virgula corpo ponto ;
-corpo: while_ repeat_ else_;
+programa: program_ id ponto_virgula corpo ponto;
+corpo: dc begin_ comandos end_;
+dc: dc_c dc_v dc_p;
+dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c;
+dc_v: | var_ variaves doispontos tipo_var ponto_virgula dc_v;
+tipo_var: real | integer;
+variaveis: id mais_var;
+mais_var: | virgula variaveis;
+dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
+parametros: | abre_par lista_par fecha_par;
+lista_par: variaveis doispontos tipo_var mais_par;
+mais_par: | ponto_virgula lista_par;
+corpo_p: dc_loc begin_ comandos end_ ponto_virgula;
+dc_loc: dc_v;
+lista_arg: | abre_par argumentos fecha_par;
+argumentos: id mais_ident;
+mais_ident: | ponto_virgula argumentos;
+pfalse: | else_ cmd;
+comandos: | cmd ponto_virgula comandos;
+cmd: readln_ abre_par variaveis fecha_par | 
+	writeln_ abre_par variaveis fecha_par |
+	repeat_ comandos until_ condicao |
+	if_ condicao then_ cmd pfalsa |
+	id atribuicao expressao |
+	id lista_arg |
+	begin_ comandos end_;
+condicao: expressao relacao expressao;
+relacao: 	operador_comp_igual  |
+			operador_comp_maiorigual |
+			operador_comp_maior  |
+			operador_comp_diff |
+			operador_comp_menorigual |
+			operador_comp_menor; 
+expressao: termo outros_termos;
+op_un: | operador_mat_soma |
+		operador_mat_sub;
+outros_termos: | op_ad termo outros_termos;
+op_ad: 	operador_mat_soma |
+		operador_mat_sub;
+termo: op_un fator mais_fatores;
+mais_fatores: | op_mult fator mais_fatores;
+op_mul:  	operador_mat_mult | 
+			operador_mat_div;
+fator: id | numero | abre_par expressao fecha_par;
+numero: num_integer | num_real;
+
+
 %%
 
 int main (int argc, char *argv[])
