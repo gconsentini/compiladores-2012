@@ -81,7 +81,7 @@ cmd: readln_ abre_par variaveis fecha_par |
 	id lista_arg |
 	while_ abre_par condicao fecha_par do_ cmd |
 	begin_ comandos end_;
-condicao: expressao relacao expressao;
+condicao: expressao relacao expressao | error { yyerror("Erro na condição do laço while"); } ;
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
