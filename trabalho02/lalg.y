@@ -37,16 +37,16 @@
 %token ponto 
 %token abre_par 
 %token fecha_par 
-%token operador-mat-soma 
-%token operador-mat-sub 
-%token operador-mat-mult 
-%token operador-mat-div 
-%token operador-comp-igual 
-%token operador-comp-maiorigual
-%token operador-comp-maior 
-%token operador-comp-diff 
-%token operador-comp-menorigual 
-%token operador-comp-menor 
+%token operador_mat_soma 
+%token operador_mat_sub 
+%token operador_mat_mult 
+%token operador_mat_div 
+%token operador_comp_igual 
+%token operador_comp_maiorigual
+%token operador_comp_maior 
+%token operador_comp_diff 
+%token operador_comp_menorigual 
+%token operador_comp_menor 
 
 
 %% /* Grammar rules and actions follow.  */

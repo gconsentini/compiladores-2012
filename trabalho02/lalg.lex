@@ -111,7 +111,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
        	if(strlen(yytext) > MAXLEN_INTEGER)
          	printf("token %d: %s-ERRO\nError at line %d: Max integer length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
        	else{
-         	printf("token %d: %s-num_integer\n",num_token++,yytext);
+         	//printf("token %d: %s-num_integer\n",num_token++,yytext);
 			return(num_integer);
 		}
      }
@@ -123,26 +123,31 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
                  	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART)
                    	printf("token %d: %s-ERRO\nError at line %d: Max decimal part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
                  	else{
-						printf("token %d: %s-num_real\n",num_token++,yytext);
+						//printf("token %d: %s-num_real\n",num_token++,yytext);
 						return(num_real);
 					}
 				}
 
 
-"="|">="|">"|"<>"|"<="|"<"   printf("token %d: %s-operador-comp\n", num_token++,yytext);
+"="   { return(operador_comp_igual); }
+">="  { return(operador_comp_maiorigual); }
+">"   { return(operador_comp_maior); }
+"<>"  { return(operador_comp_diff); }
+"<="  { return(operador_comp_menorigual); }
+"<"   { return(operador_comp_menor); }
 
-"+" printf("token %d: %s-operador-mat-soma\n",num_token++, yytext);
-"-" printf("token %d: %s-operador-mat-sub\n",num_token++, yytext);
-"*" printf("token %d: %s-operador-mat-mult\n",num_token++, yytext);
-"/" printf("token %d: %s-operador-mat-div\n",num_token++, yytext);
+"+" { return(operador_mat_soma); }
+"-" { return(operador_mat_sub); }
+"*" { return(operador_mat_mult); }
+"/" { return(operador_mat_div); }
 
-";"   printf("token %d: %s-;\n", num_token++,yytext);
-","   printf("token %d: %s-,\n", num_token++,yytext);
-":="  printf("token %d: %s-:=\n", num_token++,yytext);
-":"   printf("token %d: %s-:\n", num_token++,yytext);
-"\."  printf("token %d: %s-.\n", num_token++,yytext);
-"\("  printf("token %d: %s-(\n", num_token++,yytext);
-"\)"  printf("token %d: %s-)\n", num_token++,yytext);
+";"   { return(ponto_virgula); }
+","   { return(virgula); }
+":="  { return(atribuicao); }
+":"   { return(doispontos); }
+"\."  { return(ponto); }
+"\("  { return(abre_par ); }
+"\)"  { return(fecha_par ); }
 
 \n	num_lines++; /*conta o numero de linhas*/
 

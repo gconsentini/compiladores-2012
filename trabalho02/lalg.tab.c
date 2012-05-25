@@ -133,7 +133,17 @@
      doispontos = 280,
      ponto = 281,
      abre_par = 282,
-     fecha_par = 283
+     fecha_par = 283,
+     operador_mat_soma = 284,
+     operador_mat_sub = 285,
+     operador_mat_mult = 286,
+     operador_mat_div = 287,
+     operador_comp_igual = 288,
+     operador_comp_maiorigual = 289,
+     operador_comp_maior = 290,
+     operador_comp_diff = 291,
+     operador_comp_menorigual = 292,
+     operador_comp_menor = 293
    };
 #endif
 
@@ -151,7 +161,7 @@ typedef int YYSTYPE;
 
 
 /* Line 343 of yacc.c  */
-#line 155 "lalg.tab.c"
+#line 165 "lalg.tab.c"
 
 #ifdef short
 # undef short
@@ -454,10 +464,10 @@ static const char *const yytname[] =
   "begin_", "const_", "else_", "end_", "if_", "integer_", "procedure_",
   "program_", "readln_", "real_", "repeat_", "then_", "until_", "var_",
   "while_", "writeln_", "ponto_virgula", "virgula", "atribuicao",
-  "doispontos", "ponto", "abre_par", "fecha_par", "operador-mat-soma",
-  "operador-mat-sub", "operador-mat-mult", "operador-mat-div",
-  "operador-comp-igual", "operador-comp-maiorigual", "operador-comp-maior",
-  "operador-comp-diff", "operador-comp-menorigual", "operador-comp-menor",
+  "doispontos", "ponto", "abre_par", "fecha_par", "operador_mat_soma",
+  "operador_mat_sub", "operador_mat_mult", "operador_mat_div",
+  "operador_comp_igual", "operador_comp_maiorigual", "operador_comp_maior",
+  "operador_comp_diff", "operador_comp_menorigual", "operador_comp_menor",
   "$accept", "programa", "corpo", 0
 };
 #endif
@@ -1378,7 +1388,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1382 "lalg.tab.c"
+#line 1392 "lalg.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

@@ -62,7 +62,17 @@
      doispontos = 280,
      ponto = 281,
      abre_par = 282,
-     fecha_par = 283
+     fecha_par = 283,
+     operador_mat_soma = 284,
+     operador_mat_sub = 285,
+     operador_mat_mult = 286,
+     operador_mat_div = 287,
+     operador_comp_igual = 288,
+     operador_comp_maiorigual = 289,
+     operador_comp_maior = 290,
+     operador_comp_diff = 291,
+     operador_comp_menorigual = 292,
+     operador_comp_menor = 293
    };
 #endif
 
