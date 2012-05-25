@@ -9,6 +9,7 @@
 	#include <stdlib.h>
 	int yylex (void);
 	void yyerror (char *);
+	int numerrors=0;
 %}
 
 %token id
@@ -16,6 +17,7 @@
 %token num_real
 %token begin_
 %token const_
+%token do_
 %token else_
 %token end_
 %token if_
@@ -77,6 +79,7 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao then_ cmd pfalse |
 	id atribuicao expressao |
 	id lista_arg |
+	while_ abre_par condicao fecha_par do_ cmd |
 	begin_ comandos end_;
 condicao: expressao relacao expressao;
 relacao: 	operador_comp_igual  |
@@ -108,13 +111,18 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-	/*yydebug = 1; */
+	/* yydebug = 1; */ 
 	yyparse();
-	printf ( "Parse Completed\n" );
+	if(numerrors==0)
+		printf ( "Parse Completed\n" );
+	else
+		printf ( "Parse Completed with %d errors\n", numerrors);
+
 	return 0;
 }
 
 void yyerror (char *s)
 {
 fprintf (stderr, "%s\n", s);
+numerrors++;
 }

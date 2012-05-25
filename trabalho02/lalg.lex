@@ -3,7 +3,7 @@
  #include<string.h>
  #include "lalg.tab.h"
 
- #define NUM_RESERVADAS 16
+ #define NUM_RESERVADAS 17
  #define TAM_MAX_PALAVRA 16
  #define TAM_MAX_ID 32
  /*Definicao baseada em int e float de 4bytes*/
@@ -29,20 +29,21 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 	palavras_reservadas[i] = (char *) malloc(TAM_MAX_PALAVRA*sizeof(char));
 	strcpy(palavras_reservadas[0],"begin");
 	strcpy(palavras_reservadas[1],"const");
-	strcpy(palavras_reservadas[2],"else");
-	strcpy(palavras_reservadas[3],"end");
-	strcpy(palavras_reservadas[4],"if");
-	strcpy(palavras_reservadas[5],"integer");
-	strcpy(palavras_reservadas[6],"procedure");
-	strcpy(palavras_reservadas[7],"program");
-	strcpy(palavras_reservadas[8],"readln");
-	strcpy(palavras_reservadas[9],"real");
-	strcpy(palavras_reservadas[10],"repeat");
-	strcpy(palavras_reservadas[11],"then");
-	strcpy(palavras_reservadas[12],"until");
-	strcpy(palavras_reservadas[13],"var");
-	strcpy(palavras_reservadas[14],"while");
-	strcpy(palavras_reservadas[15],"writeln");
+	strcpy(palavras_reservadas[2],"do");
+	strcpy(palavras_reservadas[3],"else");
+	strcpy(palavras_reservadas[4],"end");
+	strcpy(palavras_reservadas[5],"if");
+	strcpy(palavras_reservadas[6],"integer");
+	strcpy(palavras_reservadas[7],"procedure");
+	strcpy(palavras_reservadas[8],"program");
+	strcpy(palavras_reservadas[9],"readln");
+	strcpy(palavras_reservadas[10],"real");
+	strcpy(palavras_reservadas[11],"repeat");
+	strcpy(palavras_reservadas[12],"then");
+	strcpy(palavras_reservadas[13],"until");
+	strcpy(palavras_reservadas[14],"var");
+	strcpy(palavras_reservadas[15],"while");
+	strcpy(palavras_reservadas[16],"writeln");
  }
  /**
    * Função que busca no vetor de palavras reservadas o identificador atual
@@ -90,20 +91,21 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
               	//printf("token %d: %s-%s\n",num_token++, yytext,yytext);
 				if(pos==0) return(begin_);
 				if(pos==1) return(const_);
-				if(pos==2) return(else_);
-				if(pos==3) return(end_);
-				if(pos==4) return(if_);
-				if(pos==5) return(integer_);
-				if(pos==6) return(procedure_);
-				if(pos==7) return(program_);
-				if(pos==8) return(readln_);
-				if(pos==9) return(real_);
-				if(pos==10) return(repeat_);
-				if(pos==11) return(then_);
-				if(pos==12) return(until_);
-				if(pos==13) return(var_);
-				if(pos==14) return(while_);
-				if(pos==15) return(writeln_);
+				if(pos==2) return(do_);
+				if(pos==3) return(else_);
+				if(pos==4) return(end_);
+				if(pos==5) return(if_);
+				if(pos==6) return(integer_);
+				if(pos==7) return(procedure_);
+				if(pos==8) return(program_);
+				if(pos==9) return(readln_);
+				if(pos==10) return(real_);
+				if(pos==11) return(repeat_);
+				if(pos==12) return(then_);
+				if(pos==13) return(until_);
+				if(pos==14) return(var_);
+				if(pos==15) return(while_);
+				if(pos==16) return(writeln_);
 			}
    	}
 
