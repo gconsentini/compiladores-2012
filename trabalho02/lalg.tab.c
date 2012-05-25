@@ -111,22 +111,22 @@
      id = 258,
      num_integer = 259,
      num_real = 260,
-     begin = 261,
-     constante = 262,
-     senao = 263,
-     end = 264,
-     se = 265,
-     integer = 266,
-     procedure = 267,
-     program = 268,
-     readln = 269,
-     real = 270,
-     repeat = 271,
-     then = 272,
-     until = 273,
-     var = 274,
-     enquanto = 275,
-     writeln = 276,
+     begin_ = 261,
+     const_ = 262,
+     else_ = 263,
+     end_ = 264,
+     if_ = 265,
+     integer_ = 266,
+     procedure_ = 267,
+     program_ = 268,
+     readln_ = 269,
+     real_ = 270,
+     repeat_ = 271,
+     then_ = 272,
+     until_ = 273,
+     var_ = 274,
+     while_ = 275,
+     writeln_ = 276,
      ponto_virgula = 277,
      virgula = 278,
      atribuicao = 279,
@@ -450,12 +450,15 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "id", "num_integer", "num_real", "begin",
-  "constante", "senao", "end", "se", "integer", "procedure", "program",
-  "readln", "real", "repeat", "then", "until", "var", "enquanto",
-  "writeln", "\";\"", "\",\"", "\":=\"", "\":\"", "\".\"", "\"(\"",
-  "\")\"", "\"+\"", "\"-\"", "\"*\"", "\"/\"", "\"=\"", "\">=\"", "\">\"",
-  "\"<>\"", "\"<=\"", "\"<\"", "$accept", "programa", "corpo", 0
+  "$end", "error", "$undefined", "id", "num_integer", "num_real",
+  "begin_", "const_", "else_", "end_", "if_", "integer_", "procedure_",
+  "program_", "readln_", "real_", "repeat_", "then_", "until_", "var_",
+  "while_", "writeln_", "ponto_virgula", "virgula", "atribuicao",
+  "doispontos", "ponto", "abre_par", "fecha_par", "operador-mat-soma",
+  "operador-mat-sub", "operador-mat-mult", "operador-mat-div",
+  "operador-comp-igual", "operador-comp-maiorigual", "operador-comp-maior",
+  "operador-comp-diff", "operador-comp-menorigual", "operador-comp-menor",
+  "$accept", "programa", "corpo", 0
 };
 #endif
 
@@ -1375,7 +1378,7 @@ yyreduce:
       
 
 /* Line 1806 of yacc.c  */
-#line 1379 "lalg.tab.c"
+#line 1382 "lalg.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

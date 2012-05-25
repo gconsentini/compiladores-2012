@@ -18,7 +18,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 	int num_lines = 1, num_token = 1, inibusca=1;
 	char **palavras_reservadas;
 
- int iniciaListaPalavras()
+ void iniciaListaPalavras()
  {
  /*Inicializa o vetor de palavras reservadas
 	por possuir poucas palavras prefiriu-se atribuí-las
@@ -60,12 +60,6 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
    int inf = 0;
    int sup = tamanho-1;
    int meio;
-   inibusca=1;
-	if(inibusca==1){
-		iniciaListaPalavras();
-		inibusca=0;
-	}
-
    while (inf <= sup)
    {
  	meio = (inf + sup)/2;
@@ -81,15 +75,35 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 %%
 
 {IDENT} {
-			printf("Busca Iniciada...");
           	if(strlen(yytext) > TAM_MAX_ID)
        	printf("token %d: %s-ERRO\nError at line %d: Max id length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-     	if(buscaBinaria(palavras_reservadas,yytext,16)==-1){
-              	printf("token %d: %s-id\n",num_token++, yytext);
+		if(inibusca==1){
+			iniciaListaPalavras();
+			inibusca=0;
+		}
+		int pos;
+		pos=buscaBinaria(palavras_reservadas,yytext,16);
+     	if(pos==-1){
+              	//printf("token %d: %s-id\n",num_token++, yytext);
 				return(id);
           	}else{
-              	printf("token %d: %s-%s\n",num_token++, yytext,yytext);
-				return(id);
+              	//printf("token %d: %s-%s\n",num_token++, yytext,yytext);
+				if(pos==0) return(begin_);
+				if(pos==1) return(const_);
+				if(pos==2) return(else_);
+				if(pos==3) return(end_);
+				if(pos==4) return(if_);
+				if(pos==5) return(integer_);
+				if(pos==6) return(procedure_);
+				if(pos==7) return(program_);
+				if(pos==8) return(readln_);
+				if(pos==9) return(real_);
+				if(pos==10) return(repeat_);
+				if(pos==11) return(then_);
+				if(pos==12) return(until_);
+				if(pos==13) return(var_);
+				if(pos==14) return(while_);
+				if(pos==15) return(while_);
 			}
    	}
 
