@@ -6,7 +6,7 @@ procedure nomep (x: real);
 var a, c: integer; 
 begin 
 readln(c, a); 
-if a<x+c then 
+if a<18 then 
 begin 
 a:= c+x; 
 writeln(a); 
@@ -16,7 +16,12 @@ end;
 begin {programa principal} 
 readln(b); 
 nomep(b); 
-while (b<10) do 
+while b<10 do 
+begin 
+b:=b+2; 
+a:=a-1; 
+end;
+while a> 10 do 
 begin 
 b:=b+2; 
 a:=a-1; 

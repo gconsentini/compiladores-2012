@@ -79,9 +79,9 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao then_ cmd pfalse |
 	id atribuicao expressao |
 	id lista_arg |
-	while_ abre_par condicao fecha_par do_ cmd |
+	while_ condicao do_ cmd |
 	begin_ comandos end_;
-condicao: expressao relacao expressao | error { yyerror("Erro na condição do laço while"); } ;
+condicao: expressao relacao expressao /* | error { yyerror("Erro na condição do laço while"); }  */;
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
@@ -111,7 +111,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-	/* yydebug = 1; */ 
+	/*yydebug = 1; */ 
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
@@ -123,6 +123,6 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
-fprintf (stderr, "%s\n", s);
+fprintf (stderr, "ERROR: Line number , %s\n", s);
 numerrors++;
 }

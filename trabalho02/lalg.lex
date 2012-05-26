@@ -11,11 +11,12 @@
  /*IEEE 754-2008 - alterada para ausencia de sinal*/
  #define MAXLEN_FLOAT_INTPART 5
  #define MAXLEN_FLOAT_DECPART 6
+ int num_lines = 1;
 %}
 
 DIGIT [0-9]
 IDENT [a-zA-Z][a-zA-Z0-9]*
-	int num_lines = 1, num_token = 1, inibusca=1;
+	int num_token = 1, inibusca=1;
 	char **palavras_reservadas;
 	char err_msg[200];
 
@@ -77,16 +78,18 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 %%
 
 {IDENT} {
-          	if(strlen(yytext) > TAM_MAX_ID)
-       	printf("token %d: %s-ERRO\nError at line %d: Max id length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-		if(inibusca==1){
-			iniciaListaPalavras();
-			inibusca=0;
-		}
-		int pos;
-		pos=buscaBinaria(palavras_reservadas,yytext,16);
-     	if(pos==-1){
-              	//printf("token %d: %s-id\n",num_token++, yytext);
+          	if(strlen(yytext) > TAM_MAX_ID){
+				sprintf(err_msg,"ERROR: Error at line %d: Max id length exceeded: %s\n",num_lines,yytext);
+				yyerror(err_msg);
+			}
+			if(inibusca==1){
+				iniciaListaPalavras();
+				inibusca=0;
+			}
+			int pos;
+			pos=buscaBinaria(palavras_reservadas,yytext,16);
+			if(pos==-1){
+				//printf("token %d: %s-id\n",num_token++, yytext);
 				return(id);
           	}else{
               	//printf("token %d: %s-%s\n",num_token++, yytext,yytext);
@@ -110,14 +113,16 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 			}
    	}
 
-{DIGIT}+  {
-       	if(strlen(yytext) > MAXLEN_INTEGER)
-         	printf("token %d: %s-ERRO\nError at line %d: Max integer length exceeded: %s\n",num_token++,yytext,num_lines, yytext);
-       	else{
-         	//printf("token %d: %s-num_integer\n",num_token++,yytext);
-			return(num_integer);
-		}
-     }
+{DIGIT}+  	{
+			if(strlen(yytext) > MAXLEN_INTEGER){
+					sprintf(err_msg,"ERROR: Error at line %d: Max integer length exceeded: %s\n",num_lines,yytext);
+					yyerror(err_msg);
+			}
+			else{
+				//printf("token %d: %s-num_integer\n",num_token++,yytext);
+				return(num_integer);
+			}
+	}
 
 {DIGIT}+"."{DIGIT}+ {
                  	int n_dot = strchr(yytext,'.') - yytext;
@@ -125,8 +130,10 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 						sprintf(err_msg,"ERROR: Error at line %d: Max integer part length of real number exceeded: %s\n",num_lines,yytext);
 						yyerror(err_msg);
 					}
-                 	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART)
-                   	printf("token %d: %s-ERRO\nError at line %d: Max decimal part length of real number exceeded: %s\n",num_token++,yytext,num_lines,yytext);
+                 	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART){
+						sprintf(err_msg,"ERROR: Error at line %d: Max decimal part length of real number exceeded: %s\n",num_lines,yytext);
+						yyerror(err_msg);
+					}
                  	else{
 						//printf("token %d: %s-num_real\n",num_token++,yytext);
 						return(num_real);
@@ -179,12 +186,12 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 			yyerror(err_msg);
 }
 
-({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]+)+{DIGIT}*  {
+({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\.\ ]+)+{DIGIT}*  {
    				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
 				 yyerror(err_msg);
 }
 
-({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
+({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\ ]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
    				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
 				 yyerror(err_msg);
 }
