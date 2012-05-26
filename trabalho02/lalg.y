@@ -10,7 +10,11 @@
 	int yylex (void);
 	void yyerror (char *);
 	int numerrors=0;
+	extern int num_lines;
 %}
+
+%right else_
+%right readln_ writeln_ repeat_ if_ id while_ begin_
 
 %token id
 %token num_integer
@@ -48,7 +52,10 @@
 %token operador_comp_maior 
 %token operador_comp_diff 
 %token operador_comp_menorigual 
-%token operador_comp_menor 
+%token operador_comp_menor
+
+%left operador_mat_soma operador_mat_sub
+%left operador_mat_mult operador_mat_div
 
 
 %% /* Grammar rules and actions follow.  */
@@ -77,11 +84,12 @@ cmd: readln_ abre_par variaveis fecha_par |
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
 	if_ condicao then_ cmd pfalse |
-	id atribuicao expressao |
-	id lista_arg |
+	id pos_id |
 	while_ condicao do_ cmd |
+	/*error { yyerror("era esperado while"); } condicao do_ cmd |*/
 	begin_ comandos end_;
-condicao: expressao relacao expressao /* | error { yyerror("Erro na condição do laço while"); }  */;
+pos_id: atribuicao expressao | lista_arg;
+condicao: expressao relacao expressao | error { yyerror("Erro na condição"); } ;
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
@@ -101,7 +109,6 @@ op_mult:  	operador_mat_mult |
 fator: id | numero | abre_par expressao fecha_par;
 numero: num_integer | num_real;
 
-
 %%
 
 int main (int argc, char *argv[])
@@ -111,7 +118,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-	/*yydebug = 1; */ 
+	yydebug = 1; 
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
@@ -123,6 +130,8 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
-fprintf (stderr, "ERROR: Line number , %s\n", s);
-numerrors++;
+	if(strcmp(s,"syntax error")){
+		fprintf (stderr, "Line %d: ERROR: %s\n",num_lines, s);
+		numerrors++;
+	}
 }

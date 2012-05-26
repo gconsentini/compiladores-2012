@@ -11,8 +11,11 @@
  /*IEEE 754-2008 - alterada para ausencia de sinal*/
  #define MAXLEN_FLOAT_INTPART 5
  #define MAXLEN_FLOAT_DECPART 6
+ 
  int num_lines = 1;
+
 %}
+%option yylineno
 
 DIGIT [0-9]
 IDENT [a-zA-Z][a-zA-Z0-9]*
@@ -79,7 +82,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 
 {IDENT} {
           	if(strlen(yytext) > TAM_MAX_ID){
-				sprintf(err_msg,"ERROR: Error at line %d: Max id length exceeded: %s\n",num_lines,yytext);
+				sprintf(err_msg,"Max id length exceeded: %s\n",yytext);
 				yyerror(err_msg);
 			}
 			if(inibusca==1){
@@ -115,7 +118,7 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 
 {DIGIT}+  	{
 			if(strlen(yytext) > MAXLEN_INTEGER){
-					sprintf(err_msg,"ERROR: Error at line %d: Max integer length exceeded: %s\n",num_lines,yytext);
+					sprintf(err_msg,"Max integer length exceeded: %s\n",yytext);
 					yyerror(err_msg);
 			}
 			else{
@@ -127,11 +130,11 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 {DIGIT}+"."{DIGIT}+ {
                  	int n_dot = strchr(yytext,'.') - yytext;
                  	if(n_dot > MAXLEN_FLOAT_INTPART){
-						sprintf(err_msg,"ERROR: Error at line %d: Max integer part length of real number exceeded: %s\n",num_lines,yytext);
+						sprintf(err_msg,"Max integer part length of real number exceeded: %s\n",yytext);
 						yyerror(err_msg);
 					}
                  	else if ((strlen(yytext)-n_dot-1)>MAXLEN_FLOAT_DECPART){
-						sprintf(err_msg,"ERROR: Error at line %d: Max decimal part length of real number exceeded: %s\n",num_lines,yytext);
+						sprintf(err_msg,"Max decimal part length of real number exceeded: %s\n",yytext);
 						yyerror(err_msg);
 					}
                  	else{
@@ -175,28 +178,28 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
      	break;	/* found the end */
    	if ( c == EOF )   
    	{
-     	printf("error-Error at line %d: Comment not closed. EOF reached",num_lines);
+     	printf("Comment not closed. EOF reached");
      	break;
    	}  	 
  	}
    }
 
 ({IDENT}[^0-9\n\t ;{\/\*\+\-<>"<="">=""<>"\)=\.\:\,\(":="]*)+ {
-            sprintf(err_msg,"ERROR: Error at line %d: Identifier malformed %s",num_lines,yytext);
+            sprintf(err_msg,"Identifier malformed %s",yytext);
 			yyerror(err_msg);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\.\ ]+)+{DIGIT}*  {
-   				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
+   				 sprintf(err_msg,"Number malformed %s",yytext);
 				 yyerror(err_msg);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\ ]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
-   				 sprintf(err_msg,"ERROR: Error at line %d: Number malformed %s",num_lines,yytext);
+   				 sprintf(err_msg,"Number malformed %s",yytext);
 				 yyerror(err_msg);
 }
 
-. {				 sprintf(err_msg,"ERROR: Error at line %d: Unrecognized character : %s",num_lines, yytext);
+. {				 sprintf(err_msg,"Unrecognized character : %s", yytext);
 				 yyerror(err_msg);
  }
 %%
