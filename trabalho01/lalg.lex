@@ -113,11 +113,11 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
             printf("token %d: %s-ERRO\nError at line %d: Identifier malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 
-({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]+)+{DIGIT}*  {
+({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\.\ ]+)+{DIGIT}*  {
    				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 
-({DIGIT}+[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
+({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\ ]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
    				 printf("token %d: %s-ERRO\nError at line %d: Number malformed %s\n",num_token++,yytext,num_lines,yytext);
 }
 

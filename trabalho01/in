@@ -30,6 +30,8 @@ else if (j >= i);
 writeln(j);
 else
 readln(k);
+if i>12 then
+	i:=12;
 {Temos um comentario
 de multiplas linhas
 aqui}
