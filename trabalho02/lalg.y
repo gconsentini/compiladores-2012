@@ -13,9 +13,6 @@
 	extern int num_lines;
 %}
 
-%right else_
-%right readln_ writeln_ repeat_ if_ id while_ begin_
-
 %token id
 %token num_integer
 %token num_real
@@ -53,9 +50,6 @@
 %token operador_comp_diff 
 %token operador_comp_menorigual 
 %token operador_comp_menor
-
-%left operador_mat_soma operador_mat_sub
-%left operador_mat_mult operador_mat_div
 
 
 %% /* Grammar rules and actions follow.  */
