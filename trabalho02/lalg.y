@@ -54,13 +54,12 @@
 %nonassoc error
 %% /* Grammar rules and actions follow.  */
 
-/* programa::= program ident ; <corpo> . */
 programa: program_ id ponto_virgula corpo ponto
-	  | error { yyerror("Expected: program"); } id ponto_virgula corpo ponto
+	  | error { yyerror("Expected: program");yyclearin; } id ponto_virgula corpo ponto
 	  | program_ id error { yyerror("Expected: ';'"); }  corpo ponto
 	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
 corpo: dc begin_ comandos end_
-	| dc error { yyerror("Expected: begin or declaration of variables and constants"); } comandos end_
+	| dc error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
 	| dc begin_ comandos error { yyerror("Expected: end"); };
 dc: dc_c dc_v dc_p;
 dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c
@@ -90,16 +89,19 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao then_ cmd pfalse |
 	id pos_id |
 	while_ condicao do_ cmd |
-	error { yyerror("Era esperado while"); } condicao do_ cmd |
-	begin_ comandos end_;
+	error { yyerror("Expected: 'while'"); yyclearin; } condicao do_ cmd |
+	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
+	begin_ comandos end_; /*|
+ 	begin_ comandos error { yyerror("Expected: 'end'"); yyclearin; } ; */
 pos_id: atribuicao expressao | lista_arg;
-condicao: expressao relacao expressao | /*error { yyerror("Erro na condição"); }*/ ;
+condicao: expressao relacao expressao | error {yyclearin;} ;
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
 			operador_comp_diff |
 			operador_comp_menorigual |
-			operador_comp_menor; 
+			operador_comp_menor
+			| error { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }; 
 expressao: termo outros_termos;
 op_un: | operador_mat_soma |
 		operador_mat_sub;
@@ -111,7 +113,7 @@ mais_fatores: | op_mult fator mais_fatores;
 op_mult:  	operador_mat_mult | 
 			operador_mat_div;
 fator: id | numero | abre_par expressao fecha_par;
-numero: num_integer | num_real;
+numero: num_integer | num_real | error { yyerror("Expected a number"); yyclearin; };
 
 %%
 
@@ -134,8 +136,8 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
- 	if(strcmp(s,"syntax error")){ 
+/*  	if(strcmp(s,"syntax error")){  */
 		fprintf (stderr, "Line %d: ERROR: %s\n",num_lines, s);
 		numerrors++;
- 	} 
+/*  	}  */
 }

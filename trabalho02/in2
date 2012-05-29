@@ -1,7 +1,8 @@
 program nome2;
 begin
-while a<20 do
+while v a<=20 do
 begin
 a:=20;
+writelnn(a); {Erro semantico, posso ter um procedimento writelnn()}
 end;
 end.
