@@ -1,8 +1,7 @@
 program nome2;
 begin
-if a<34 then
+while a<20 do
 begin
 a:=20;
-a:=20;
-end
+end;
 end.

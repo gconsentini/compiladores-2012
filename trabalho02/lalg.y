@@ -51,16 +51,26 @@
 %token operador_comp_menorigual 
 %token operador_comp_menor
 
-
+%nonassoc error
 %% /* Grammar rules and actions follow.  */
 
 /* programa::= program ident ; <corpo> . */
-programa: program_ id ponto_virgula corpo ponto;
-corpo: dc begin_ comandos end_;
+programa: program_ id ponto_virgula corpo ponto
+	  | error { yyerror("Expected: program"); } id ponto_virgula corpo ponto
+	  | program_ id error { yyerror("Expected: ';'"); }  corpo ponto
+	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
+corpo: dc begin_ comandos end_
+	| dc error { yyerror("Expected: begin or declaration of variables and constants"); } comandos end_
+	| dc begin_ comandos error { yyerror("Expected: end"); };
 dc: dc_c dc_v dc_p;
-dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c;
-dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v;
-tipo_var: real_ | integer_;
+dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c
+      | const_ id error { yyerror("Expected: '='"); } numero ponto_virgula dc_c
+      | const_ id operador_comp_igual numero error { yyerror("Expected: ';'"); } dc_c; 
+dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v
+      | var_ variaveis error { yyerror("Expected: ':'"); } tipo_var ponto_virgula dc_v
+      | var_ variaveis doispontos tipo_var error { yyerror("Expected: ';'"); } dc_v;
+tipo_var: real_ | integer_
+	  | error { yyerror("Incorrect type: Expected integer or real"); };
 variaveis: id mais_var;
 mais_var: | virgula variaveis;
 dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
@@ -72,7 +82,7 @@ dc_loc: dc_v;
 lista_arg: | abre_par argumentos fecha_par;
 argumentos: id mais_ident;
 mais_ident: | ponto_virgula argumentos;
-pfalse: | else_ cmd;
+pfalse: | else_ cmd; 
 comandos: | cmd ponto_virgula comandos;
 cmd: readln_ abre_par variaveis fecha_par | 
 	writeln_ abre_par variaveis fecha_par |
@@ -80,10 +90,10 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao then_ cmd pfalse |
 	id pos_id |
 	while_ condicao do_ cmd |
-	/*error { yyerror("era esperado while"); } condicao do_ cmd |*/
+	error { yyerror("Era esperado while"); } condicao do_ cmd |
 	begin_ comandos end_;
 pos_id: atribuicao expressao | lista_arg;
-condicao: expressao relacao expressao | error { yyerror("Erro na condição"); } ;
+condicao: expressao relacao expressao | /*error { yyerror("Erro na condição"); }*/ ;
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
@@ -112,7 +122,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-	yydebug = 1; 
+/*  	yydebug = 1;   */
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
@@ -124,8 +134,8 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
-	if(strcmp(s,"syntax error")){
+ 	if(strcmp(s,"syntax error")){ 
 		fprintf (stderr, "Line %d: ERROR: %s\n",num_lines, s);
 		numerrors++;
-	}
+ 	} 
 }

@@ -1,4 +1,4 @@
-bison lalg.y -d
+bison lalg.y -d -v
 gcc -c lalg.tab.c
 flex lalg.lex
 gcc -c lex.yy.c 
