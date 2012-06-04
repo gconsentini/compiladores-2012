@@ -55,9 +55,10 @@
 %% /* Grammar rules and actions follow.  */
 
 programa: program_ id ponto_virgula corpo ponto
-	  | error { yyerror("Expected: program");yyclearin; } id ponto_virgula corpo ponto
-	  | program_ id error { yyerror("Expected: ';'"); }  corpo ponto
-	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
+	  | error id ponto_virgula { yyerrok; yyerror("Expected: program"); yyclearin; } corpo ponto
+	  | error id error { yyerrok; yyerror("Expected: program"); yyclearin; } corpo ponto
+	  | program_ id error { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; } corpo  ponto
+	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } 
 corpo: dc begin_ comandos end_
 	| dc error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
 	| dc begin_ comandos error { yyerror("Expected: end"); };
@@ -69,12 +70,12 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v
       | var_ variaveis error { yyerror("Expected: ':'"); } tipo_var ponto_virgula dc_v
       | var_ variaveis doispontos tipo_var error { yyerror("Expected: ';'"); } dc_v;
 tipo_var: real_ | integer_
-	  | error { yyerror("Incorrect type: Expected integer or real"); };
+	  | error { yyerror("Incorrect type: Expected integer or real"); yyclearin; };
 variaveis: id mais_var;
 mais_var: | virgula variaveis;
 dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
 parametros: | abre_par lista_par fecha_par;
-lista_par: variaveis doispontos tipo_var mais_par;
+lista_par: variaveis doispontos tipo_var mais_par | variaveis error tipo_var { yyerrok; yyerror("Expected: ':'"); yyclearin; } tipo_var mais_par;
 mais_par: | ponto_virgula lista_par;
 corpo_p: dc_loc begin_ comandos end_ ponto_virgula;
 dc_loc: dc_v;
@@ -82,17 +83,17 @@ lista_arg: | abre_par argumentos fecha_par;
 argumentos: id mais_ident;
 mais_ident: | ponto_virgula argumentos;
 pfalse: | else_ cmd; 
-comandos: | cmd ponto_virgula comandos;
+comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Comando não reconhecido"); yyclearin; }  comandos;
 cmd: readln_ abre_par variaveis fecha_par | 
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
 	if_ condicao then_ cmd pfalse |
+/* 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse | */
 	id pos_id |
 	while_ condicao do_ cmd |
-	error { yyerror("Expected: 'while'"); yyclearin; } condicao do_ cmd |
-	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
-	begin_ comandos end_; /*|
- 	begin_ comandos error { yyerror("Expected: 'end'"); yyclearin; } ; */
+/*	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
+	error { yyerror("Comando não reconhecido"); yyclearin; } |*/
+	begin_ comandos end_;
 pos_id: atribuicao expressao | lista_arg;
 condicao: expressao relacao expressao | error {yyclearin;} ;
 relacao: 	operador_comp_igual  |

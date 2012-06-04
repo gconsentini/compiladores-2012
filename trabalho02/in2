@@ -1,8 +1,12 @@
 program nome2;
+procedure teste(a: integer);
 begin
-while v a<=20 do
+write(a);
+end;
+begin
+writeln(a);
+wile a<12 do
 begin
 a:=20;
-writelnn(a); {Erro semantico, posso ter um procedimento writelnn()}
 end;
 end.
