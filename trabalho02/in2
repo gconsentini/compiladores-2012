@@ -5,8 +5,9 @@ write(a);
 end;
 begin
 writeln(a);
-wile a<12 do
+if a<12 then
 begin
 a:=20;
+write(a;
 end;
 end.

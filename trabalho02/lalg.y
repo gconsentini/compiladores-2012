@@ -91,8 +91,10 @@ cmd: readln_ abre_par variaveis fecha_par |
 /* 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse | */
 	id pos_id |
 	while_ condicao do_ cmd |
-/*	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
-	error { yyerror("Comando não reconhecido"); yyclearin; } |*/
+	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd |
+	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
+	error condicao do_ { yyerror("Era esperado while"); yyclearin; } cmd |
+	error condicao then_ { yyerror("Era esperado if"); yyclearin; } cmd pfalse |
 	begin_ comandos end_;
 pos_id: atribuicao expressao | lista_arg;
 condicao: expressao relacao expressao | error {yyclearin;} ;
