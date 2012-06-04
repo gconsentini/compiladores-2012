@@ -1,13 +1,5 @@
 program nome2;
-procedure teste(a: integer);
 begin
-write(a);
-end;
-begin
-writeln(a);
-if a<12 then
-begin
-a:=20;
-write(a;
-end;
+a:=123 2 +2;
+b:= 1256;
 end.

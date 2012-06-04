@@ -187,20 +187,24 @@ IDENT [a-zA-Z][a-zA-Z0-9]*
 ({IDENT}[^0-9\n\t ;{\/\*\+\-<>"<="">=""<>"\)=\.\:\,\(":="]*)+ {
             sprintf(err_msg,"Identifier malformed %s",yytext);
 			yyerror(err_msg);
+			return(invalido);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\.\ ]+)+{DIGIT}*  {
    				 sprintf(err_msg,"Number malformed %s",yytext);
 				 yyerror(err_msg);
+				 return(invalido);
 }
 
 ({DIGIT}+[^0-9\n;{\/\*\+\-\<\>"<="">=""<>"\)\=\ ]*)+[\.]({DIGIT}*[^0-9\n;{\/\*\+\-<>"<="">=""<>"\)=\.]*)*  { 
    				 sprintf(err_msg,"Number malformed %s",yytext);
 				 yyerror(err_msg);
+				 return(invalido);
 }
 
 . {				 sprintf(err_msg,"Unrecognized character : %s", yytext);
 				 yyerror(err_msg);
+				 return(invalido);
  }
 %%
 

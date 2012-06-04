@@ -50,6 +50,7 @@
 %token operador_comp_diff 
 %token operador_comp_menorigual 
 %token operador_comp_menor
+%token invalido
 
 %nonassoc error
 %% /* Grammar rules and actions follow.  */
@@ -88,7 +89,6 @@ cmd: readln_ abre_par variaveis fecha_par |
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
 	if_ condicao then_ cmd pfalse |
-/* 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse | */
 	id pos_id |
 	while_ condicao do_ cmd |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd |
@@ -114,7 +114,8 @@ op_ad: 	operador_mat_soma |
 termo: op_un fator mais_fatores;
 mais_fatores: | op_mult fator mais_fatores;
 op_mult:  	operador_mat_mult | 
-			operador_mat_div;
+			operador_mat_div 
+			/*| error {yyerror("Expected any operator: '+, '-', '*', '/' ");yyclearin; }*/;
 fator: id | numero | abre_par expressao fecha_par;
 numero: num_integer | num_real | error { yyerror("Expected a number"); yyclearin; };
 
@@ -127,7 +128,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
-/*  	yydebug = 1;   */
+ 	yydebug = 1;  
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
