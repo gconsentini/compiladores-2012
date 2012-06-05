@@ -1,5 +1,24 @@
 program nome2;
+const a=12;
+var c,e,a:integer;
+
+procedure nomep(x: real);
+var a, c: integer; 
+begin 
+readln(c, a);
+if a<x+c then
 begin
-a:=123 2 +2;
-b:= 1256;
+a:= c+x;
+writeln(a);
+end
+else c:= a+x;
+end;
+
+begin
+procas:=a;
+while a<12 do
+begin
+a:=10;
+b:=11;
+end;
 end.

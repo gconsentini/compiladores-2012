@@ -56,8 +56,8 @@
 %% /* Grammar rules and actions follow.  */
 
 programa: program_ id ponto_virgula corpo ponto
-	  | error id ponto_virgula { yyerrok; yyerror("Expected: program"); yyclearin; } corpo ponto
-	  | error id error { yyerrok; yyerror("Expected: program"); yyclearin; } corpo ponto
+	  | error id ponto_virgula { yyerror("Expected: program"); yyclearin; } corpo ponto
+	  | error id error { yyerror("Expected: program"); yyclearin; } corpo ponto
 	  | program_ id error { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; } corpo  ponto
 	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } 
 corpo: dc begin_ comandos end_
@@ -68,8 +68,9 @@ dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c
       | const_ id error { yyerror("Expected: '='"); } numero ponto_virgula dc_c
       | const_ id operador_comp_igual numero error { yyerror("Expected: ';'"); } dc_c; 
 dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v
-      | var_ variaveis error { yyerror("Expected: ':'"); } tipo_var ponto_virgula dc_v
-      | var_ variaveis doispontos tipo_var error { yyerror("Expected: ';'"); } dc_v;
+	  | var_ error { yyerror("Expected an identifier"); } doispontos tipo_var ponto_virgula dc_v
+      | var_ variaveis error { yyerror("Expected: ':'");yyclearin; } tipo_var ponto_virgula dc_v
+      | var_ variaveis doispontos tipo_var error { yyerror("Expected: ';'");yyclearin; } dc_v;
 tipo_var: real_ | integer_
 	  | error { yyerror("Incorrect type: Expected integer or real"); yyclearin; };
 variaveis: id mais_var;
@@ -88,13 +89,12 @@ comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Comando 
 cmd: readln_ abre_par variaveis fecha_par | 
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
+	repeat_ comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
 	if_ condicao then_ cmd pfalse |
 	id pos_id |
 	while_ condicao do_ cmd |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
-	error condicao do_ { yyerror("Era esperado while"); yyclearin; } cmd |
-	error condicao then_ { yyerror("Era esperado if"); yyclearin; } cmd pfalse |
 	begin_ comandos end_;
 pos_id: atribuicao expressao | lista_arg;
 condicao: expressao relacao expressao | error {yyclearin;} ;
@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
 	++argv; 
 	--argc;
 	yyin = fopen( argv[0], "r" );
- 	yydebug = 1;  
+/*  	yydebug = 1;   */
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
