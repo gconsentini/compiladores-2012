@@ -93,7 +93,7 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao then_ cmd pfalse |
 	id pos_id |
 	while_ condicao do_ cmd |
-	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd |
+	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
 pos_id: atribuicao expressao | lista_arg;
@@ -114,8 +114,7 @@ op_ad: 	operador_mat_soma |
 termo: op_un fator mais_fatores;
 mais_fatores: | op_mult fator mais_fatores;
 op_mult:  	operador_mat_mult | 
-			operador_mat_div 
-			/*| error {yyerror("Expected any operator: '+, '-', '*', '/' ");yyclearin; }*/;
+			operador_mat_div;
 fator: id | numero | abre_par expressao fecha_par;
 numero: num_integer | num_real | error { yyerror("Expected a number"); yyclearin; };
 
@@ -140,8 +139,8 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
-/*  	if(strcmp(s,"syntax error")){  */
+ 	if(strcmp(s,"syntax error")){ 
 		fprintf (stderr, "Line %d: ERROR: %s\n",num_lines, s);
 		numerrors++;
-/*  	}  */
+ 	} 
 }

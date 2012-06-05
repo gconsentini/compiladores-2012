@@ -1,24 +1,24 @@
 program nome2;
 const a=12;
-var c,e,a:integer;
+var c,e,a,:integer;				{Erro aqui}
 
 procedure nomep(x: real);
-var a, c: integer; 
+var a, c, : integer;   			{Erro aqui}
 begin 
-readln(c, a);
-if a<x+c then
+readln(c,);						{Erro aqui}
+if a<x+c the					{Erro aqui}
 begin
 a:= c+x;
-writeln(a);
+writeln a);						{Erro aqui}
 end
 else c:= a+x;
 end;
 
 begin
-procas:=a;
-while a<12 do
+proca);							{Erro aqui}
+while a<12 doo					{Erro aqui}
 begin
 a:=10;
-b:=11;
+b:=11 & 12;						{Erro aqui}
 end;
-end.
+end								{Erro aqui}
