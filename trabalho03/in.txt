@@ -1,0 +1,24 @@
+program nome2;
+const a=12;
+var c,e,a:integer;				{Erro aqui}
+
+procedure nomep(x: real);
+var a, c: integer;   			{Erro aqui}
+begin 
+readln(c);						{Erro aqui}
+if a<x+c then					{Erro aqui}
+begin
+a:= c+x;
+writeln(a);						{Erro aqui}
+end
+else c:= a+x;
+end;
+
+begin
+proc(a);						{Erro aqui}
+while a<12 do					{Erro aqui}
+begin
+a:=10;
+b:=11 + 12;						{Erro aqui}
+end;
+end.							{Erro aqui}
