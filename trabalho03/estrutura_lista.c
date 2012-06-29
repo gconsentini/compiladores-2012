@@ -8,6 +8,7 @@
  *
  */
 
+int prox_end_relativo=0;
 typedef struct
 {
     char *nome;
@@ -17,6 +18,12 @@ typedef struct
     unsigned int end_relativo;
 	int contexto;
 }simbolo;
+
+int getEndRelativo(){
+	int ret=prox_end_relativo;
+	prox_end_relativo++;
+	return ret;
+}
 
 
 void realoca (simbolo **p, int novo_tamanho)

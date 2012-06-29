@@ -28,42 +28,9 @@
 		float valorf;
 		int valori;
         unsigned int end_relativo;
+		int contexto;
 	}simbolo;
 
-	void realoca (simbolo **p, int novo_tamanho)
-	{
-	        simbolo *realocado;
-	        realocado = realloc ((*p), novo_tamanho * sizeof(simbolo));
-	        (*p) = realocado;
-	        
-	}
-
-	void insere (simbolo *tabela, simbolo p, int tamanho)
-	{
-	     int i=0,j;
-	     while(i<tamanho && strcmp(tabela[i].nome,p.nome)<0)
-	        ++i;
-	     
-	     for(j=tamanho;j>i;--j)
-	          tabela[j]= tabela[j-1];
-	     
-	     tabela[i]=p;
-	}
-
-	int deleta (simbolo *tabela, simbolo p, int tamanho)
-	{
-	     int i=0,j;
-	     while(i<tamanho && strcmp(tabela[i].nome,p.nome)!= 0)
-	        ++i;
-	     /*saiu porque encontrou*/
-	     if(i<tamanho)
-	     {
-	      for(j=i;j<tamanho-1;++j)
-	          tabela[j]= tabela[j+1];
-	      return 1;
-	     }
-	     return 0;
-	}
 	
 %}
 /* 	Declaração de tokens de bison  */
