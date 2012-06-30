@@ -8,6 +8,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
+	#include "estrutura_lista.h"
 	int yylex (void);
 	void yyerror (char *);
 	int numerrors=0;
