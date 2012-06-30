@@ -83,28 +83,32 @@
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union 
 /* Line 2068 of yacc.c  */
-#line 31 "lalg.y"
+#line 28 "lalg.y"
 YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 31 "lalg.y"
+#line 28 "lalg.y"
 
 	int i_number;
-	float r_number;
+	double r_number;
 	char* name;
 	int type;
 	struct symbol {
 		int i_value;
-		float f_value;
+		double f_value;
 		int type;
 	} symbol;
+	struct variavel{
+		char* name;
+		int type;
+	} variavel;
 	char math_op;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 108 "lalg.tab.h"
+#line 112 "lalg.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

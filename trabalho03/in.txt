@@ -1,5 +1,7 @@
 program nome2;
-const a=12;
+const con=12.353;
+const con2=204;
+const con3=6.001;
 var c,e,a:integer;				{Erro aqui}
 
 procedure nomep(x: real);

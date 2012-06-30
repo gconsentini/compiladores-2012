@@ -4,47 +4,41 @@
 	#define YYDEBUG 1 /* For Debugging */
 	#define NUM_RESERVADAS 16
 	#define TAM_MAX_PALAVRA 16
+
+	#define INTEGER 0
+	#define REAL 1 
+
 	#include <math.h>
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
-	#include "estrutura_lista.h"
+	
 	int yylex (void);
 	void yyerror (char *);
 	int numerrors=0;
+	int contexto=0;
 	extern int num_lines;
-
-/*	typedef struct{
-		char *nome;
-		char *tipo;
-		double valor;
-		struct simbolo *ant, *prox;
-	} simbolo;
-*/
-
-	typedef struct
-	{
-        char *nome;
-        int tipo;
-		float valorf;
-		int valori;
-        unsigned int end_relativo;
-		int contexto;
-	}simbolo;
+	char listavar[400];
+	char *str;
+	char *cpystr;
 
 	
 %}
 /* 	Declaração de tokens de bison  */
 %union YYSTYPE{
 	int i_number;
-	float r_number;
+	double r_number;
 	char* name;
 	int type;
 	struct symbol {
 		int i_value;
-		float f_value;
+		double f_value;
 		int type;
 	} symbol;
+	struct variavel{
+		char* name;
+		int type;
+	} variavel;
 	char math_op;
 }
 
@@ -88,40 +82,98 @@
 %token invalido
 
 %type <symbol> numero
+%type <i_number> tipo_var
 %nonassoc error
 %% /* Delaração de Regras de gramática do Bison */
 
-programa: program_ id ponto_virgula corpo ponto
+programa: program_ id { insereProgram ($2); } ponto_virgula corpo ponto 
 	  | error id ponto_virgula { yyerror("Expected: program"); yyclearin; } corpo ponto
 	  | error id error { yyerror("Expected: program"); yyclearin; } corpo ponto
 	  | program_ id error { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; } corpo  ponto
-	  | program_ id ponto_virgula corpo error { yyerror("Expected: '.'"); } 
+	  | program_ id { insereProgram ($2); } ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
+
 corpo: dc begin_ comandos end_
 	| dc error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
 	| dc begin_ comandos error { yyerror("Expected: end"); };
+
 dc: dc_c dc_v dc_p;
-dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c { printf("%s %d %f", $2, $4.i_value, $4.f_value); }
+
+dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c { 
+																	if($4.type==INTEGER){ 
+																		insereConstInt ($2, $4.i_value, contexto); 
+																	} else if($4.type==REAL) { 
+																		insereConstReal ($2, $4.f_value, contexto); 
+																	} 
+																}
+
       | const_ id error { yyerror("Expected: '='"); } numero ponto_virgula dc_c
       | const_ id operador_comp_igual numero error { yyerror("Expected: ';'"); } dc_c; 
-dc_v: | var_ variaveis doispontos tipo_var ponto_virgula dc_v
+
+dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {	
+																str=malloc(400 * sizeof(char));
+																str=strtok(listavar,",");
+																while(str!=NULL){
+																	cpystr=malloc(400 * sizeof(char));
+																	strcpy(cpystr,str);
+																	if($4==INTEGER){ 
+																		insereVarInt (cpystr, contexto);
+																	} else if($4==REAL) { 
+																		insereVarReal (cpystr, contexto);
+																	} 
+																	str=strtok(NULL,",");
+																}
+																listavar[0]='\0';
+																
+														   } dc_v
+
 	  | var_ error { yyerror("Expected an identifier"); } doispontos tipo_var ponto_virgula dc_v
       | var_ variaveis error { yyerror("Expected: ':'");yyclearin; } tipo_var ponto_virgula dc_v
       | var_ variaveis doispontos tipo_var error { yyerror("Expected: ';'");yyclearin; } dc_v;
-tipo_var: real_ | integer_
+
+tipo_var: real_ { $$ = REAL; } | integer_ { $$ = INTEGER; }
 	  | error { yyerror("Incorrect type: Expected integer or real"); yyclearin; };
-variaveis: id mais_var;
+
+variaveis: id mais_var { strcat(listavar,$1); strcat(listavar,","); };
+
 mais_var: | virgula variaveis;
-dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
+
+dc_p: | procedure_ { contexto=1; } id parametros ponto_virgula corpo_p { contexto=0; } dc_p;
+
 parametros: | abre_par lista_par fecha_par;
-lista_par: variaveis doispontos tipo_var mais_par | variaveis error tipo_var { yyerror("Expected: ':'"); yyclearin; } tipo_var mais_par;
+
+lista_par: variaveis doispontos tipo_var 	{	
+												str=malloc(400 * sizeof(char));
+												str=strtok(listavar,",");
+												while(str!=NULL){
+													cpystr=malloc(400 * sizeof(char));
+													strcpy(cpystr,str);
+													if($3==INTEGER){ 
+														insereParamInt (cpystr, contexto);
+													} else if($3==REAL) { 
+														insereParamReal (cpystr, contexto);
+													} 
+													str=strtok(NULL,",");
+												}
+												listavar[0]='\0';
+												
+										   }	mais_par | variaveis error tipo_var { yyerror("Expected: ':'"); yyclearin; } tipo_var mais_par;
+
 mais_par: | ponto_virgula lista_par;
+
 corpo_p: dc_loc begin_ comandos end_ ponto_virgula;
+
 dc_loc: dc_v;
+
 lista_arg: | abre_par argumentos fecha_par;
+
 argumentos: id mais_ident;
+
 mais_ident: | ponto_virgula argumentos;
+
 pfalse: | else_ cmd; 
+
 comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Comando não reconhecido"); yyclearin; }  comandos;
+
 cmd: readln_ abre_par variaveis fecha_par | 
 	writeln_ abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
@@ -132,8 +184,11 @@ cmd: readln_ abre_par variaveis fecha_par |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
+
 pos_id: atribuicao expressao | lista_arg;
+
 condicao: expressao relacao expressao | error {yyclearin;} ;
+
 relacao: 	operador_comp_igual  |
 			operador_comp_maiorigual |
 			operador_comp_maior  |
@@ -141,18 +196,27 @@ relacao: 	operador_comp_igual  |
 			operador_comp_menorigual |
 			operador_comp_menor
 			| error { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }; 
+
 expressao: termo outros_termos;
+
 op_un: | operador_mat_soma |
 		operador_mat_sub;
+
 outros_termos: | op_ad termo outros_termos;
+
 op_ad: 	operador_mat_soma |
 		operador_mat_sub;
+
 termo: op_un fator mais_fatores;
+
 mais_fatores: | op_mult fator mais_fatores;
+
 op_mult:  	operador_mat_mult | 
 			operador_mat_div;
+
 fator: id | numero | abre_par expressao fecha_par;
-numero: num_integer | num_real | error { yyerror("Expected a number"); yyclearin; };
+
+numero: num_integer { $$.type = INTEGER; $$.i_value = $1; } | num_real { $$.type = REAL; $$.f_value = $1; } | error { yyerror("Expected a number"); yyclearin; };
 
 %%
 
@@ -164,12 +228,13 @@ int main (int argc, char *argv[])
 	--argc;
 	yyin = fopen( argv[0], "r" ); /*Passa a entrada pelo arquivo de parametro*/
 /*  	yydebug = 1;  Utilizado para Degub */
+	alocaTabelaSimbolos();
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
 	else
 		printf ( "Parse Completed with %d errors\n", numerrors);
-
+	printTabela();
 	return 0;
 }
 
