@@ -83,12 +83,12 @@
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union 
 /* Line 2068 of yacc.c  */
-#line 55 "lalg.y"
+#line 62 "lalg.y"
 YYSTYPE
 {
 
 /* Line 2068 of yacc.c  */
-#line 55 "lalg.y"
+#line 62 "lalg.y"
 
 	int i_number;
 	double r_number;
@@ -99,13 +99,14 @@ YYSTYPE
 		double f_value;
 		int type;
 		char* name;
+		char math_op;
 	} symbol;
 	char math_op;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 109 "lalg.tab.h"
+#line 110 "lalg.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

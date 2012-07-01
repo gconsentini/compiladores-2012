@@ -26,6 +26,12 @@
 #define ATTR 200
 #define EXPRESSAO 201 
 
+//Retornos ao inserir
+#define OK 300
+#define REDECLARACAO 301
+#define CONFLITO 302
+#define REDECLARACAO_PARAM 303
+
 //Tipos de erros
 #define NAO_EXISTE -1
 #define CONST_FALSE -2
@@ -42,11 +48,12 @@
 	void yyerror (char *);
 	int numerrors=0;
 	int contexto=0;
-	int ret;
+	int ret, contparametros;
 	extern int num_lines;
 	char listavar[400];
 	char *str;
 	char *cpystr;
+	char *lastprocedure;
 	char msg[300];
 
 	
@@ -113,8 +120,13 @@
 %type <symbol> mais_fatores
 %type <symbol> expressao
 %type <i_number> tipo_var
+/* %type <name> parametros */
+/* %type <name> lista_par */
 %type <math_op> op_un
 %type <math_op> op_ad
+%type <math_op> op_mult
+/* %type <name> abre_par */
+/* %type <name> fecha_par */
 /* %type <i_number> pos_id */
 /* %type <i_number> cmd */
 %nonassoc error
@@ -136,17 +148,17 @@ dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c { int retorno;
 																	if($4.type==INTEGER)
 																	{ 
 																		retorno = insereConstInt ($2, $4.i_value, contexto);
-																		if(retorno==0)
+																		if(retorno==REDECLARACAO)
 																			yyerror("Redeclaration of constants");
-																		else if(retorno ==-1)
+																		else if(retorno ==CONFLITO)
 																			yyerror("Conflicting types");
 																	} 
 																	else if($4.type==REAL) 
 																	{ 
 																		retorno = insereConstReal ($2, $4.f_value, contexto);
-																		if(retorno==0) 
+																		if(retorno==REDECLARACAO) 
 																			yyerror("Redeclaration of constants");
-																		else if(retorno ==-1)
+																		else if(retorno ==CONFLITO)
 																			yyerror("Conflicting types");
 																	} 	
 																}
@@ -163,17 +175,28 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 																	if($4==INTEGER)
 																	{ 
 																		retorno = insereVarInt (cpystr, contexto);
-																		if(retorno==0)
+/* 																		printf("Insere retorna: %d inserindo %s \n", retorno, cpystr);  */
+																		if(retorno==REDECLARACAO)
 																			yyerror("Redeclaration of variables");
-																		else if(retorno ==-1)
+																		else if(retorno ==CONFLITO)
 																			yyerror("Conflicting types");
+																		else if(retorno == REDECLARACAO_PARAM)
+																		{
+																			sprintf(msg, "Variable %s already declared as a parameter",cpystr );
+																			yyerror(msg);
+																		}
 																	} else if($4==REAL) 
 																	{ 
 																		retorno = insereVarReal (cpystr, contexto);
-																		if(retorno==0)
+																		if(retorno==REDECLARACAO)
 																			yyerror("Redeclaration of variables");
-																		else if(retorno ==-1)
+																		else if(retorno ==CONFLITO)
 																			yyerror("Conflicting types");
+																		else if(retorno == REDECLARACAO_PARAM)
+																		{
+																			sprintf(msg, "Variable %s already declared as a parameter",cpystr );
+																			yyerror(msg);
+																		}
 																	} 
 																	str=strtok(NULL,",");
 																}
@@ -192,22 +215,24 @@ variaveis: id mais_var { strcat(listavar,$1); strcat(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ id { contexto=1; int retorno; if(insereProcedure ($2,contexto)!=1) yyerror("Redefinition of procedure");} parametros ponto_virgula corpo_p { contexto=0; } dc_p;
+dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto)!=OK) yyerror("Redefinition of procedure"); lastprocedure=$2; } parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2); } dc_p;
 
 parametros: | abre_par lista_par fecha_par;
 
 lista_par: variaveis doispontos tipo_var 	{	
 												str=malloc(400 * sizeof(char));
 												str=strtok(listavar,",");
+												int ordem=1;
 												while(str!=NULL){
 													cpystr=malloc(400 * sizeof(char));
 													strcpy(cpystr,str);
 													if($3==INTEGER){ 
-														insereParamInt (cpystr, contexto);
+														insereParamInt (cpystr, contexto, lastprocedure, ordem);
 													} else if($3==REAL) { 
-														insereParamReal (cpystr, contexto);
+														insereParamReal (cpystr, contexto, lastprocedure, ordem);
 													} 
 													str=strtok(NULL,",");
+													ordem++;
 												}
 												listavar[0]='\0';
 												
@@ -221,7 +246,7 @@ dc_loc: dc_v;
 
 lista_arg: | abre_par argumentos fecha_par;
 
-argumentos: id mais_ident;
+argumentos: id { strcat(listavar,$1); strcat(listavar,","); contparametros++; } mais_ident;
 
 mais_ident: | ponto_virgula argumentos;
 
@@ -229,25 +254,99 @@ pfalse: | else_ cmd;
 
 comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Command not recognized"); yyclearin; }  comandos;
 
-cmd: readln_ abre_par variaveis fecha_par | 
-	writeln_ { printf("Write"); } abre_par variaveis fecha_par {
-																	
-																	str=malloc(400 * sizeof(char));
-																	str=strtok(listavar,",");
-																	while(str!=NULL){
-																		cpystr=malloc(400 * sizeof(char));
-																		strcpy(cpystr,str);
-																		
-																		
-																		
-																		str=strtok(NULL,",");
-																	}
-																	listavar[0]='\0';	
-																	
-																	
-																	
-																	
-																 } |
+cmd: readln_ abre_par variaveis fecha_par {
+											str=malloc(400 * sizeof(char));
+											str=strtok(listavar,",");
+											ret=busca(str,ATTR,contexto);
+											if(ret==INTEGER){
+												while(str!=NULL){
+													cpystr=malloc(400 * sizeof(char));
+													strcpy(cpystr,str);
+													ret=busca(cpystr,ATTR,contexto);
+													if(ret==NAO_EXISTE) {
+														sprintf(msg, "Identifier %s not previously declared", str);
+														yyerror(msg);
+														break;
+													}else if(ret==CONST_FALSE){
+														sprintf(msg, "Identifier %s declared as a constant", str);
+														yyerror(msg);
+														break;
+													}
+													else if(ret!=INTEGER) {
+														yyerror("Conflicting types between 'readln' parameters");
+														break;
+													}
+													str=strtok(NULL,",");
+												}
+											}else if(ret==REAL){
+												while(str!=NULL){
+													cpystr=malloc(400 * sizeof(char));
+													strcpy(cpystr,str);
+													ret=busca(cpystr,ATTR,contexto);
+													if(ret==NAO_EXISTE) {
+														sprintf(msg, "Identifier %s not previously declared", str);
+														yyerror(msg);
+														break;
+													}else if(ret==CONST_FALSE){
+														sprintf(msg, "Identifier %s declared as a constant", str);
+														yyerror(msg);
+														break;
+													}
+													else if(ret!=REAL) {
+														yyerror("Conflicting types between 'readln' parameters");
+														break;
+													}
+													str=strtok(NULL,",");
+												}
+											} else if(ret==CONST_FALSE){
+												sprintf(msg, "Identifier %s declared as a constant", str);
+												yyerror(msg);
+											}else{
+												sprintf(msg, "Identifier %s not previously declared", str);
+												yyerror(msg);
+											}
+											listavar[0]='\0';	
+										 } | 
+	writeln_ abre_par variaveis fecha_par {
+											str=malloc(400 * sizeof(char));
+											str=strtok(listavar,",");
+											ret=busca(str,EXPRESSAO,contexto);
+											if(ret==INTEGER){
+												while(str!=NULL){
+													cpystr=malloc(400 * sizeof(char));
+													strcpy(cpystr,str);
+													ret=busca(cpystr,EXPRESSAO,contexto);
+													if(ret==NAO_EXISTE) {
+														sprintf(msg, "Identifier %s not previously declared", str);
+														yyerror(msg);
+														break;
+													}else if(ret!=INTEGER) {
+														yyerror("Conflicting types between 'writeln' parameters");
+														break;
+													}
+													str=strtok(NULL,",");
+												}
+											}else if(ret==REAL){
+												while(str!=NULL){
+													cpystr=malloc(400 * sizeof(char));
+													strcpy(cpystr,str);
+													ret=busca(cpystr,EXPRESSAO,contexto);
+													if(ret==NAO_EXISTE) {
+														sprintf(msg, "Identifier %s not previously declared", str);
+														yyerror(msg);
+														break;
+													}else if(ret!=REAL) {
+														yyerror("Conflicting types between 'writeln' parameters");
+														break;
+													}
+													str=strtok(NULL,",");
+												}
+											} else {
+												sprintf(msg, "Identifier %s not previously declared", str);
+												yyerror(msg);
+											}
+											listavar[0]='\0';	
+										 } |
 	repeat_ comandos until_ condicao |
 	repeat_ comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
 	if_ condicao then_ cmd pfalse |
@@ -260,17 +359,46 @@ cmd: readln_ abre_par variaveis fecha_par |
 									sprintf(msg, "Identifier %s not previously declared", $1);
 									yyerror(msg);
 								}
-								if(busca($1,ATTR,contexto)!=$3.type && $3.type!=TNULL){
-									sprintf(msg, "Conflicting types, ", $1);
-									if($3.type==INTEGER || $3.type==VAR_INT) strcat(msg, "try to assign a INTEGER to REAL");
-									if($3.type==REAL || $3.type==VAR_REAL) strcat(msg, "try to assign a REAL to INTEGER");
+/* 								printf("Var: %d Recebe: %d\n ", busca($1,ATTR,contexto),$3.type);  */
+								if(busca($1,ATTR,contexto)==INTEGER && ($3.type==REAL || $3.type==VAR_REAL)){
+									sprintf(msg, "Conflicting types,try to assign a REAL to INTEGER %s", $1);
 									yyerror(msg);
 								}
 							  } |
-	id lista_arg {
-					if(busca($1,PROCEDURE,contexto)==NAO_EXISTE){
+	id { contparametros=0; } lista_arg {
+					ret=busca($1,PROCEDURE,contexto);//retorna o numero de parametros se declarado
+					if(ret==NAO_EXISTE){
 						sprintf(msg, "Procedure %s not previously declared", $1);
 						yyerror(msg);
+					}else{
+						str=malloc(400 * sizeof(char));
+						str=strtok(listavar,",");
+						if(ret>contparametros){
+							sprintf(msg, "Too few arguments to procedure %s", $1);
+							yyerror(msg);
+						}else if(ret<contparametros){
+							sprintf(msg, "Too many arguments to procedure %s", $1);
+							yyerror(msg);
+						}else{
+							int retvar,retparam,argpos=1;
+							while(str!=NULL){
+								cpystr=malloc(400 * sizeof(char));
+								strcpy(cpystr,str);
+								retvar=busca(str,ATTR,contexto);
+								if(retvar==NAO_EXISTE){
+									sprintf(msg, "Identifier %s not previously declared", $1);
+									yyerror(msg);
+								}
+								retparam=buscaTipoParam($1,argpos);
+								if(retvar==REAL && retparam==INTEGER){
+									sprintf(msg, "Conflicting types,try to assign a REAL to expected INTEGER parameter %d in procedure %s", argpos, $1);
+									yyerror(msg);
+								}
+								argpos++;
+								str=strtok(NULL,",");
+							}
+						}
+						listavar[0]='\0';
 					}
 				 } |
 	while_ condicao do_ cmd |
@@ -295,22 +423,23 @@ expressao: termo outros_termos {
 									$$.type = $1.type; 
 									if($1.type==INTEGER) $$.i_value=$1.i_value; 
 									if($1.type==REAL) $$.f_value=$1.f_value;
-									if($1.type==VAR_INT || $1.type==VAR_REAL) $$.name=$1.name;  
+									if($1.type==VAR_INT || $1.type==VAR_REAL) { $$.name=$1.name; };  
 								}else{
 									$$.type=TNULL;
 									if($2.type==REAL || $1.type==REAL){
 										$$.type=REAL;
-									} else if ($2.type==INTEGER || $1.type==INTEGER){
+									} else if ($2.type==INTEGER && $1.type==INTEGER){
 										$$.type=INTEGER;
+									} else {
+										yyerror("Conflicting types, Try to assign a REAL to INTEGER");
 									}
 								}
 							};
 
-op_un: { $$.math_op='0'; } | operador_mat_soma { $$.math_op='+'; } |
-		operador_mat_sub { $$.math_op='-'; } ;
+op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
+		operador_mat_sub { $$='-'; } ;
 
-outros_termos: { $$.type==TNULL; } | op_ad termo outros_termos { 
-																	$$.type==$2.type; 
+outros_termos: { $$.type=TNULL; } | op_ad termo outros_termos { 
 																	if($3.type==TNULL){
 																		$$.type = $2.type; 
 																		if($2.type==INTEGER) $$.i_value=$2.i_value; 
@@ -326,8 +455,8 @@ outros_termos: { $$.type==TNULL; } | op_ad termo outros_termos {
 																	}
 																 };
 
-op_ad: 	operador_mat_soma { $$.math_op='+'; } |
-		operador_mat_sub { $$.math_op='-'; };
+op_ad: 	operador_mat_soma { $$='+'; } |
+		operador_mat_sub { $$='-'; };
 
 termo: op_un fator mais_fatores { 
 									if($3.type==TNULL){
@@ -336,22 +465,36 @@ termo: op_un fator mais_fatores {
 										if($2.type==REAL) $$.f_value=$2.f_value;  
 										if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  
 									}
+									if($3.type!=TNULL){
+										$$.math_op=$3.math_op;
+										if($3.math_op=='/' && ($3.type==REAL || $2.type==REAL)){
+											yyerror("Division only avaiable between integers");
+										}
+									}
 								};
 
-mais_fatores: { $$.type==TNULL; } | op_mult fator mais_fatores;
+mais_fatores: { $$.type=TNULL; } | op_mult fator mais_fatores { 
+																	if($3.type==TNULL){
+																		$$.math_op=$1; 
+																		$$.type=$2.type;
+																	}
+																}	
 
-op_mult:  	operador_mat_mult { $$.math_op='*'; } | 
-			operador_mat_div { $$.math_op='/'; };
+op_mult:  	operador_mat_mult { $$='*'; } | 
+			operador_mat_div { $$='/'; };
 
 fator: id { 
-			ret=busca($1,ATTR,contexto);
+			ret=busca($1,EXPRESSAO,contexto);
 			if(ret==NAO_EXISTE){
 				sprintf(msg, "Identifier %s not previously declared", $1);
 				yyerror(msg);
 			}else{
 				$$.name=$1; $$.type=ret;
 			}
-		  } | numero { $$.type = $1.type; if($1.type==INTEGER) $$.i_value=$1.i_value; if($1.type==REAL) $$.f_value=$1.f_value;  } | abre_par expressao fecha_par;
+		  } | numero { $$.type = $1.type; 
+						if($1.type==INTEGER) $$.i_value=$1.i_value; 
+						if($1.type==REAL) $$.f_value=$1.f_value;  
+					  } | abre_par expressao fecha_par;
 
 numero: num_integer { $$.type = INTEGER; $$.i_value = $1; } | num_real { $$.type = REAL; $$.f_value = $1; } | error { yyerror("Expected a number"); yyclearin; };
 

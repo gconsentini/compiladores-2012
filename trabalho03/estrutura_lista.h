@@ -26,6 +26,12 @@
 #define ATTR 200
 #define EXPRESSAO 201 
 
+//Retornos ao inserir
+#define OK 300
+#define REDECLARACAO 301
+#define CONFLITO 302
+#define REDECLARACAO_PARAM 303
+
 //Tipos de erros
 #define NAO_EXISTE -1
 #define CONST_FALSE -2
@@ -43,6 +49,8 @@ typedef struct
     int valori;
     unsigned int end_relativo;
     int contexto;
+	char *procedure;
+	int ordem;
 }simbolo;
 
 simbolo *tabela;
@@ -54,8 +62,10 @@ void realoca (simbolo **p, int novo_tamanho);
 int insere (simbolo p);
 int insereVarInt (char *nome, int contexto);
 int insereVarReal (char *nome, int contexto);
-int insereParamInt (char *nome, int contexto);
-int insereParamReal (char *nome, int contexto);
+int insereParamInt (char *nome, int contexto, char *proc, int ordem);
+int insereParamReal (char *nome, int contexto, char *proc, int ordem);
+int removeLocalVars();
+int buscaTipoParam(char *procedure,int ordem);
 int insereNumInt (char *nome, int valor, int contexto);
 int insereNumReal (char *nome, double valor, int contexto);
 int insereConstInt (char *nome, int valor, int contexto);
@@ -64,7 +74,7 @@ int insereProcedure (char *nome, int contexto);
 int insereProgram (char *nome);
 int busca (char *nome,int tipo,int contexto);
 void printTabela();
-int deleta (simbolo *tabela, simbolo p, int tamanho);
+int removeTabela(simbolo p);
 
 #endif
 
