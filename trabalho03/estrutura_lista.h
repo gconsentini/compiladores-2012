@@ -21,6 +21,7 @@
 #define PROCEDURE_TRUE 102
 #define CONSTANTE_INTEGER 103
 #define CONSTANTE_REAL 104
+#define TNULL 199
 
 //Tipos de tipos esperados
 #define ATTR 200
@@ -74,7 +75,10 @@ int insereProcedure (char *nome, int contexto);
 int insereProgram (char *nome);
 int busca (char *nome,int tipo,int contexto);
 void printTabela();
+int buscaSimbolo(simbolo *p);
 int removeTabela(simbolo p);
+
+void carregaSimbolo(char *nome, int contexto, char *procedure);
 
 #endif
 

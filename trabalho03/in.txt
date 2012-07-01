@@ -1,6 +1,6 @@
 program prog;
-const c=30;
-var a:integer;
+const c=30.4;
+var a:real;
 var b:real;
 {
 procedure teste(x,y: integer);
@@ -20,11 +20,12 @@ end;
 begin
 {while a<12 do					
 begin }
-writeln(c,a);
+a:=a+1;
+{writeln(c,a);
+readln(a,b);
 a:=c;
 b:=10.4;
-a:=c+a;
-readln(a);
+a:=c+a;}
 {end;}
 end.							
 

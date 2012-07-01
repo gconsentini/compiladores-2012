@@ -92,6 +92,26 @@ int busca (char *nome,int tipo,int contexto)
 	return NAO_EXISTE;
 }
 
+int buscaSimbolo(simbolo *p)
+{
+	int i=0;
+	fflush(stdout);
+	while(i<numero_simbolos && strcmp(tabela[i].nome,p->nome)<=0 && tabela[i].contexto==p->contexto && (tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL || tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL || tabela[i].tipo==PARAM_INT || tabela[i].tipo==PARAM_REAL)){
+		if(strcmp(tabela[i].nome,p->nome)==0){
+			if(tabela[i].contexto==0){
+				p->tipo=tabela[i].tipo;
+				p->valori=tabela[i].valori;
+				p->valorf=tabela[i].valorf;
+				p->end_relativo=tabela[i].end_relativo;
+			}else{
+			 //verificar se procedure está correto	
+			}
+		}
+		i++;
+	}
+	return NAO_EXISTE;
+}
+
 int buscaTipoParam(char *procedure,int ordem)
 {
 	int i=0;

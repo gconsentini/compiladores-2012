@@ -20,6 +20,9 @@
 //Tipos de dados
 #define INTEGER 100
 #define REAL 101
+#define PROCEDURE_TRUE 102
+#define CONSTANTE_INTEGER 103
+#define CONSTANTE_REAL 104
 #define TNULL 199
 
 //Tipos de tipos esperados
@@ -37,7 +40,6 @@
 #define CONST_FALSE -2
 #define PROCEDURE_FALSE -3
 #define VAR_FALSE -4
-
 
 	#include <math.h>
 	#include <stdio.h>
@@ -58,6 +60,60 @@
 
 	FILE *code_file;
 
+	typedef struct
+	{
+	    char *nome;
+	    int tipo;
+	    double valorf;
+	    int valori;
+	    unsigned int end_relativo;
+	    int contexto;
+		char *procedure;
+		int ordem;
+	}simbolo;
+
+	void carregaSimbolo(char *nome, int contexto, char *procedure){
+		if(numerrors==0){
+			if(contexto==0){
+				simbolo *p;
+				p = malloc (sizeof(simbolo));
+				p->nome=nome;
+				p->contexto=contexto;
+				p->procedure=procedure;
+				buscaSimbolo(p);
+				if(p->tipo==CONST_INT){
+					fprintf(code_file, "CRCT %d\n", p->valori);
+				}
+				else if(p->tipo==CONST_REAL){
+					fprintf(code_file, "CRCT %f\n", p->valorf);
+				}else if(p->tipo==VAR_INT || p->tipo==VAR_REAL){
+					fprintf(code_file, "CRVL %d\n", p->end_relativo);
+				}
+			}
+		}
+	}
+	void armazenaSimbolo(char *nome, int contexto, char *procedure){
+		if(numerrors==0){
+			if(contexto==0){
+				simbolo *p;
+				p = malloc (sizeof(simbolo));
+				p->nome=nome;
+				p->contexto=contexto;
+				p->procedure=procedure;
+				buscaSimbolo(p);
+				if(p->tipo==VAR_INT || p->tipo==VAR_REAL){
+					fprintf(code_file, "ARMZ %d\n", p->end_relativo);
+				}
+			}
+		}
+	}
+	void strcatinv(char *l1, char* l2){
+		char *aux;
+		aux = malloc(400 * sizeof(char));
+		strcat(aux, l2);
+		strcat(aux,l1);
+		strcpy(l1, aux);
+	}
 	
 %}
 /* 	Declaração de tokens de bison  */
@@ -214,7 +270,7 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 tipo_var: real_ { $$ = REAL; } | integer_ { $$ = INTEGER; }
 	  | error { yyerror("Incorrect type: Expected integer or real"); yyclearin; };
 
-variaveis: id mais_var { strcat(listavar,$1); strcat(listavar,","); };
+variaveis: id mais_var { strcatinv(listavar,$1); strcatinv(listavar,","); };
 
 mais_var: | virgula variaveis;
 
@@ -254,7 +310,7 @@ dc_loc: dc_v;
 
 lista_arg: | abre_par argumentos fecha_par;
 
-argumentos: id { strcat(listavar,$1); strcat(listavar,","); contparametros++; } mais_ident;
+argumentos: id { strcatinv(listavar,$1); strcatinv(listavar,","); contparametros++; } mais_ident;
 
 mais_ident: | ponto_virgula argumentos;
 
@@ -283,6 +339,9 @@ cmd: readln_ abre_par variaveis fecha_par {
 													else if(ret!=INTEGER) {
 														yyerror("Conflicting types between 'readln' parameters");
 														break;
+													}else{
+														fprintf(code_file, "LEIT\n" );
+														armazenaSimbolo(str, contexto, lastprocedure);
 													}
 													str=strtok(NULL,",");
 												}
@@ -299,10 +358,12 @@ cmd: readln_ abre_par variaveis fecha_par {
 														sprintf(msg, "Identifier %s declared as a constant", str);
 														yyerror(msg);
 														break;
-													}
-													else if(ret!=REAL) {
+													}else if(ret!=REAL) {
 														yyerror("Conflicting types between 'readln' parameters");
 														break;
+													}else{
+														fprintf(code_file, "LEIT\n" );
+														armazenaSimbolo(str, contexto, lastprocedure);
 													}
 													str=strtok(NULL,",");
 												}
@@ -332,10 +393,8 @@ cmd: readln_ abre_par variaveis fecha_par {
 														yyerror("Conflicting types between 'writeln' parameters");
 														break;
 													}else{
-														if(numerrors==0){ 
-															
-															fprintf( code_file, "CRVL IMPR \n" );
-														}
+														carregaSimbolo(str, contexto, lastprocedure);
+														fprintf( code_file, "IMPR\n" );
 													}
 													str=strtok(NULL,",");
 												}
@@ -351,6 +410,9 @@ cmd: readln_ abre_par variaveis fecha_par {
 													}else if(ret!=REAL) {
 														yyerror("Conflicting types between 'writeln' parameters");
 														break;
+													}else{
+														carregaSimbolo(str, contexto, lastprocedure);
+														fprintf( code_file, "IMPR\n" );
 													}
 													str=strtok(NULL,",");
 												}
@@ -377,6 +439,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 									sprintf(msg, "Conflicting types,try to assign a REAL to INTEGER %s", $1);
 									yyerror(msg);
 								}
+								carregaSimbolo($1,contexto,lastprocedure);
 							  } |
 	id { contparametros=0; } lista_arg {
 					ret=busca($1,PROCEDURE,contexto);//retorna o numero de parametros se declarado
@@ -419,8 +482,6 @@ cmd: readln_ abre_par variaveis fecha_par {
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
 
-/* pos_id: atribuicao { insereProgram ("Aqui"); $<i_number>$=ATTR; } expressao | lista_arg { insereProgram ("Aqui"); $<i_number>$=PROCEDURE; }; */
-
 condicao: expressao relacao expressao | error {yyclearin;} ;
 
 relacao: 	operador_comp_igual  |
@@ -434,9 +495,10 @@ relacao: 	operador_comp_igual  |
 expressao: termo outros_termos { 
 								if($2.type==TNULL){
 									$$.type = $1.type; 
-									if($1.type==INTEGER) $$.i_value=$1.i_value; 
-									if($1.type==REAL) $$.f_value=$1.f_value;
-									if($1.type==VAR_INT || $1.type==VAR_REAL) { $$.name=$1.name; };  
+									if($1.type==INTEGER) { $$.i_value=$1.i_value;  }
+									if($1.type==REAL) { $$.f_value=$1.f_value;  }
+									if($1.type==VAR_INT || $1.type==VAR_REAL) { $$.name=$1.name;  };  
+									
 								}else{
 									$$.type=TNULL;
 									if($2.type==REAL || $1.type==REAL){
@@ -455,9 +517,11 @@ op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
 outros_termos: { $$.type=TNULL; } | op_ad termo outros_termos { 
 																	if($3.type==TNULL){
 																		$$.type = $2.type; 
-																		if($2.type==INTEGER) $$.i_value=$2.i_value; 
-																		if($2.type==REAL) $$.f_value=$2.f_value;
-																		if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  
+																		if($2.type==INTEGER) { $$.i_value=$2.i_value;  fprintf( code_file, "CRCT %d\n",$2.i_value ); }
+																		if($2.type==REAL) { $$.f_value=$2.f_value; fprintf( code_file, "CRCT %f\n",$2.f_value); }
+																		if($2.type==VAR_INT || $2.type==VAR_REAL) { $$.name=$2.name; carregaSimbolo($2.name,contexto,lastprocedure); }
+																		if($1=='+') fprintf( code_file, "SOMA\n");
+																		if($1=='-') fprintf( code_file, "SUBT\n");
 																	}else{
 																		$$.type=TNULL;
 																		if($2.type==REAL || $3.type==REAL){
@@ -474,9 +538,12 @@ op_ad: 	operador_mat_soma { $$='+'; } |
 termo: op_un fator mais_fatores { 
 									if($3.type==TNULL){
 										$$.type = $2.type; 
-										if($2.type==INTEGER) $$.i_value=$2.i_value; 
-										if($2.type==REAL) $$.f_value=$2.f_value;  
-										if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  
+										if($1=='0') fprintf( code_file, "CRCT 0\n");
+										if($2.type==INTEGER) { $$.i_value=$2.i_value; fprintf( code_file, "CRCT %d\n",$2.i_value );}
+										if($2.type==REAL) { $$.f_value=$2.f_value; fprintf( code_file, "CRCT %d\n",$2.i_value ); }
+										if($2.type==VAR_INT || $2.type==VAR_REAL) { $$.name=$2.name; carregaSimbolo($2.name,contexto,lastprocedure); }  
+										if($1=='+') fprintf( code_file, "SOMA\n");
+										if($1=='-') fprintf( code_file, "SUBT\n");
 									}
 									if($3.type!=TNULL){
 										$$.math_op=$3.math_op;
@@ -519,6 +586,7 @@ int AlocaMemoria(){
 	}
 	return 0;
 }
+
 int main (int argc, char *argv[])
 {
 	register int i=0;
