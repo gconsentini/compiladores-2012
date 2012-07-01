@@ -878,7 +878,7 @@ YY_RULE_SETUP
 				inibusca=0;
 			}
 			int pos;
-			pos=buscaBinaria(palavras_reservadas,yytext,16);
+			pos=buscaBinaria(palavras_reservadas,yytext,17);
 			if(pos==-1){
 				//printf("token %d: %s-id\n",num_token++, yytext);
 				yylval.name = strdup( yytext );

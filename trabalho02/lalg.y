@@ -1,3 +1,4 @@
+/* 	Declaração de cabeçalho do bison */
 %{
 	#define YYSTYPE double
 	#define YYDEBUG 1 /* For Debugging */
@@ -12,7 +13,7 @@
 	int numerrors=0;
 	extern int num_lines;
 %}
-
+/* 	Declaração de tokens de bison  */
 %token id
 %token num_integer
 %token num_real
@@ -53,7 +54,7 @@
 %token invalido
 
 %nonassoc error
-%% /* Grammar rules and actions follow.  */
+%% /* Delaração de Regras de gramática do Bison */
 
 programa: program_ id ponto_virgula corpo ponto
 	  | error id ponto_virgula { yyerror("Expected: program"); yyclearin; } corpo ponto
@@ -77,7 +78,7 @@ variaveis: id mais_var;
 mais_var: | virgula variaveis;
 dc_p: | procedure_ id parametros ponto_virgula corpo_p dc_p;
 parametros: | abre_par lista_par fecha_par;
-lista_par: variaveis doispontos tipo_var mais_par | variaveis error tipo_var { yyerrok; yyerror("Expected: ':'"); yyclearin; } tipo_var mais_par;
+lista_par: variaveis doispontos tipo_var mais_par | variaveis error tipo_var { yyerror("Expected: ':'"); yyclearin; } tipo_var mais_par;
 mais_par: | ponto_virgula lista_par;
 corpo_p: dc_loc begin_ comandos end_ ponto_virgula;
 dc_loc: dc_v;
@@ -126,8 +127,8 @@ int main (int argc, char *argv[])
 	extern FILE *yyin;
 	++argv; 
 	--argc;
-	yyin = fopen( argv[0], "r" );
-/*  	yydebug = 1;   */
+	yyin = fopen( argv[0], "r" ); /*Passa a entrada pelo arquivo de parametro*/
+/*  	yydebug = 1;  Utilizado para Degub */
 	yyparse();
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
@@ -139,7 +140,7 @@ int main (int argc, char *argv[])
 
 void yyerror (char *s)
 {
- 	if(strcmp(s,"syntax error")){ 
+ 	if(strcmp(s,"syntax error")){ /*Descartamos as mensagens padrões "syntax error do Bison*/
 		fprintf (stderr, "Line %d: ERROR: %s\n",num_lines, s);
 		numerrors++;
  	} 

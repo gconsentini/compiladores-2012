@@ -1,26 +1,11 @@
-program nome2;
-const con=12.353;
-const con2=204;
-const con3=6.001;
-var c,e,a:integer;				{Erro aqui}
+program c;
 
-procedure nomep(x: real);
-var a, c: integer;   			{Erro aqui}
-begin 
-readln(c);						{Erro aqui}
-if a<x+c then					{Erro aqui}
-begin
-a:= c+x;
-writeln(a);						{Erro aqui}
-end
-else c:= a+x;
-end;
+var c,a:integer;
 
 begin
 proc(a);						{Erro aqui}
 while a<12 do					{Erro aqui}
 begin
-a:=10;
-b:=11 + 12;						{Erro aqui}
+a:=10.4+1;
 end;
 end.							{Erro aqui}

@@ -5,8 +5,33 @@
 	#define NUM_RESERVADAS 16
 	#define TAM_MAX_PALAVRA 16
 
-	#define INTEGER 0
-	#define REAL 1 
+// Categorias da Tabela de Simbolos
+#define NUM_INT 0 
+#define NUM_REAL 1 
+#define PROGRAM 2
+#define PROCEDURE 3 
+#define CONST_INT 4
+#define CONST_REAL 5 
+#define VAR_INT 6 
+#define VAR_REAL 7 
+#define PARAM_INT 8
+#define PARAM_REAL 9
+
+//Tipos de dados
+#define INTEGER 100
+#define REAL 101
+#define TNULL 199
+
+//Tipos de tipos esperados
+#define ATTR 200
+#define EXPRESSAO 201 
+
+//Tipos de erros
+#define NAO_EXISTE -1
+#define CONST_FALSE -2
+#define PROCEDURE_FALSE -3
+#define VAR_FALSE -4
+
 
 	#include <math.h>
 	#include <stdio.h>
@@ -17,10 +42,12 @@
 	void yyerror (char *);
 	int numerrors=0;
 	int contexto=0;
+	int ret;
 	extern int num_lines;
 	char listavar[400];
 	char *str;
 	char *cpystr;
+	char msg[300];
 
 	
 %}
@@ -34,11 +61,8 @@
 		int i_value;
 		double f_value;
 		int type;
-	} symbol;
-	struct variavel{
 		char* name;
-		int type;
-	} variavel;
+	} symbol;
 	char math_op;
 }
 
@@ -64,7 +88,7 @@
 %token writeln_
 %token ponto_virgula 
 %token virgula 
-%token atribuicao 
+%token<i_number> atribuicao 
 %token doispontos
 %token ponto 
 %token abre_par 
@@ -82,7 +106,13 @@
 %token invalido
 
 %type <symbol> numero
+%type <symbol> fator
+%type <symbol> termo
+%type <symbol> outros_termos
+%type <symbol> expressao
 %type <i_number> tipo_var
+/* %type <i_number> pos_id */
+/* %type <i_number> cmd */
 %nonassoc error
 %% /* Delaração de Regras de gramática do Bison */
 
@@ -98,27 +128,48 @@ corpo: dc begin_ comandos end_
 
 dc: dc_c dc_v dc_p;
 
-dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c { 
-																	if($4.type==INTEGER){ 
-																		insereConstInt ($2, $4.i_value, contexto); 
-																	} else if($4.type==REAL) { 
-																		insereConstReal ($2, $4.f_value, contexto); 
+dc_c: | const_ id operador_comp_igual numero ponto_virgula dc_c { int retorno;
+																	if($4.type==INTEGER)
+																	{ 
+																		retorno = insereConstInt ($2, $4.i_value, contexto);
+																		if(retorno==0)
+																			yyerror("Redeclaration of constants");
+																		else if(retorno ==-1)
+																			yyerror("Conflicting types");
 																	} 
+																	else if($4.type==REAL) 
+																	{ 
+																		retorno = insereConstReal ($2, $4.f_value, contexto);
+																		if(retorno==0) 
+																			yyerror("Redeclaration of constants");
+																		else if(retorno ==-1)
+																			yyerror("Conflicting types");
+																	} 	
 																}
 
       | const_ id error { yyerror("Expected: '='"); } numero ponto_virgula dc_c
       | const_ id operador_comp_igual numero error { yyerror("Expected: ';'"); } dc_c; 
 
-dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {	
+dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 																str=malloc(400 * sizeof(char));
 																str=strtok(listavar,",");
 																while(str!=NULL){
 																	cpystr=malloc(400 * sizeof(char));
 																	strcpy(cpystr,str);
-																	if($4==INTEGER){ 
-																		insereVarInt (cpystr, contexto);
-																	} else if($4==REAL) { 
-																		insereVarReal (cpystr, contexto);
+																	if($4==INTEGER)
+																	{ 
+																		retorno = insereVarInt (cpystr, contexto);
+																		if(retorno==0)
+																			yyerror("Redeclaration of variables");
+																		else if(retorno ==-1)
+																			yyerror("Conflicting types");
+																	} else if($4==REAL) 
+																	{ 
+																		retorno = insereVarReal (cpystr, contexto);
+																		if(retorno==0)
+																			yyerror("Redeclaration of variables");
+																		else if(retorno ==-1)
+																			yyerror("Conflicting types");
 																	} 
 																	str=strtok(NULL,",");
 																}
@@ -137,7 +188,7 @@ variaveis: id mais_var { strcat(listavar,$1); strcat(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ { contexto=1; } id parametros ponto_virgula corpo_p { contexto=0; } dc_p;
+dc_p: | procedure_ id { contexto=1; int retorno; if(insereProcedure ($2,contexto)!=1) yyerror("Redefinition of procedure");} parametros ponto_virgula corpo_p { contexto=0; } dc_p;
 
 parametros: | abre_par lista_par fecha_par;
 
@@ -172,20 +223,41 @@ mais_ident: | ponto_virgula argumentos;
 
 pfalse: | else_ cmd; 
 
-comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Comando não reconhecido"); yyclearin; }  comandos;
+comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Command not recognized"); yyclearin; }  comandos;
 
 cmd: readln_ abre_par variaveis fecha_par | 
-	writeln_ abre_par variaveis fecha_par |
+	writeln_ { printf("Write"); } abre_par variaveis fecha_par |
 	repeat_ comandos until_ condicao |
 	repeat_ comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
 	if_ condicao then_ cmd pfalse |
-	id pos_id |
+	id atribuicao expressao { 
+								if(busca($1,ATTR,contexto)==CONST_FALSE){
+									sprintf(msg, "Identifier %s declared as a constant", $1);
+									yyerror(msg);
+								}
+								if(busca($1,ATTR,contexto)==NAO_EXISTE){
+									sprintf(msg, "Identifier %s not previously declared", $1);
+									yyerror(msg);
+								}
+								if(busca($1,ATTR,contexto)!=$3.type && $3.type!=TNULL){
+									sprintf(msg, "Conflicting types, ", $1);
+									if($3.type==INTEGER || $3.type==VAR_INT) strcat(msg, "try to assign a INTEGER to REAL");
+									if($3.type==REAL || $3.type==VAR_REAL) strcat(msg, "try to assign a REAL to INTEGER");
+									yyerror(msg);
+								}
+							  } |
+	id lista_arg {
+					if(busca($1,PROCEDURE,contexto)==NAO_EXISTE){
+						sprintf(msg, "Procedure %s not previously declared", $1);
+						yyerror(msg);
+					}
+				 } |
 	while_ condicao do_ cmd |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
 
-pos_id: atribuicao expressao | lista_arg;
+/* pos_id: atribuicao { insereProgram ("Aqui"); $<i_number>$=ATTR; } expressao | lista_arg { insereProgram ("Aqui"); $<i_number>$=PROCEDURE; }; */
 
 condicao: expressao relacao expressao | error {yyclearin;} ;
 
@@ -197,24 +269,43 @@ relacao: 	operador_comp_igual  |
 			operador_comp_menor
 			| error { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }; 
 
-expressao: termo outros_termos;
+expressao: termo outros_termos { 
+								if($2.type==TNULL){
+									printf("AquiTNULL\n");
+									$$.type = $1.type; 
+									if($1.type==INTEGER) $$.i_value=$1.i_value; 
+									if($1.type==REAL) $$.f_value=$1.f_value;
+									if($1.type==VAR_INT || $1.type==VAR_REAL) $$.name=$1.name;  
+								}else{
+									$$.type==TNULL;
+									printf("Aqui\n");
+								}
+							};
 
 op_un: | operador_mat_soma |
 		operador_mat_sub;
 
-outros_termos: | op_ad termo outros_termos;
+outros_termos: { $$.type==TNULL; } | op_ad termo outros_termos { $$.type==$2.type; };
 
 op_ad: 	operador_mat_soma |
 		operador_mat_sub;
 
-termo: op_un fator mais_fatores;
+termo: op_un fator mais_fatores { $$.type = $2.type; if($2.type==INTEGER) $$.i_value=$2.i_value; if($2.type==REAL) $$.f_value=$2.f_value;  if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  } ;
 
 mais_fatores: | op_mult fator mais_fatores;
 
 op_mult:  	operador_mat_mult | 
 			operador_mat_div;
 
-fator: id | numero | abre_par expressao fecha_par;
+fator: id { 
+			ret=busca($1,ATTR,contexto);
+			if(ret==NAO_EXISTE){
+				sprintf(msg, "Identifier %s not previously declared", $1);
+				yyerror(msg);
+			}else{
+				$$.name=$1; $$.type=ret;
+			}
+		  } | numero { $$.type = $1.type; if($1.type==INTEGER) $$.i_value=$1.i_value; if($1.type==REAL) $$.f_value=$1.f_value;  } | abre_par expressao fecha_par;
 
 numero: num_integer { $$.type = INTEGER; $$.i_value = $1; } | num_real { $$.type = REAL; $$.f_value = $1; } | error { yyerror("Expected a number"); yyclearin; };
 

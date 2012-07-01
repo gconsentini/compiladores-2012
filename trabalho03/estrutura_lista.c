@@ -3,29 +3,9 @@
 #include<string.h>
 #include "estrutura_lista.h"
 
-#define NUM_INT 0 
-#define NUM_REAL 1 
-#define CONST_INT 2 
-#define CONST_REAL 3 
-#define PROCEDURE 4 
-#define PROGRAM 5
-#define VAR_INT 6 
-#define VAR_REAL 7 
-#define PARAM_INT 8
-#define PARAM_REAL 9
 
-/*
- * 0 - NUM_INT
- * 1 - NUM_REAL
- * 2 - CONST_INT
- * 3 - CONST_REAL
- * 4 - PROCEDURE
- * 5 - PROGRAM
- * 6 - VAR_INT
- * 7 - VAR_REAL
- */
-
-int getEndRelativo(){
+int getEndRelativo()
+{
 	int ret=prox_end_relativo;
 	prox_end_relativo++;
 	return ret;
@@ -49,46 +29,164 @@ void realoca (simbolo **p, int novo_tamanho)
         
 }
 
-void insere (simbolo p)
+int insere (simbolo p)
 {
      int i=0,j;
      while(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)<0)
         ++i;
-     
+     fflush(stdout);
+	 
+	 /*caso exista alguma entrada na tabela de simbolos com o mesmo nome, deve-se verificar se eh permitido*/
+	 if(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)==0)
+	 {
+		 /*se as variaveis tem o mesmo tipo e pertencem ao mesmo escopo. ERRO: redeclaracao de variavel*/
+		 while(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)==0){
+			 if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto)
+				return 0;
+			
+			/*se as variaveis nao tem o mesmo tipo, isso so eh permitido se alguma delas for PROGRAM ou PROCEDURE. ERRO: tipos conflitantes*/
+			if(tabela[i].tipo != p.tipo && tabela[i].tipo != PROGRAM && tabela[i].tipo !=PROCEDURE && p.tipo != PROGRAM && p.tipo !=PROCEDURE && tabela[i].contexto == p.contexto)
+				return -1;
+			
+			i++;
+		 }
+	 }
+	 
      for(j=numero_simbolos;j>i;--j)
           tabela[j]= tabela[j-1];
      
      tabela[i]=p;
+	 return 1;
+}
+int busca (char *nome,int tipo,int contexto)
+{
+	int i=0;
+
+	while(i<numero_simbolos && strcmp(tabela[i].nome,nome)<0)
+		++i;
+	
+	if(i<numero_simbolos && strcmp(tabela[i].nome,nome)==0)
+	{
+		while(i<numero_simbolos && strcmp(tabela[i].nome,nome)==0){
+			if(tabela[i].contexto==contexto){
+				if((tabela[i].tipo==VAR_INT || tabela[i].tipo==PARAM_INT)  && tipo==EXPRESSAO) return INTEGER;
+				if((tabela[i].tipo==VAR_REAL || tabela[i].tipo==PARAM_REAL) && tipo==EXPRESSAO) return REAL;
+				if((tabela[i].tipo==VAR_INT)  && tipo==ATTR) return INTEGER;
+				if((tabela[i].tipo==VAR_REAL) && tipo==ATTR) return REAL;
+				if(tabela[i].tipo==PROCEDURE && tipo==PROCEDURE) return PROCEDURE_TRUE;
+			}
+			if(tabela[i].tipo==CONST_INT  && tipo==EXPRESSAO) return INTEGER;
+			if(tabela[i].tipo==CONST_REAL  && tipo==EXPRESSAO) return REAL;
+			
+			if(tipo==ATTR && (tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL)){
+				return CONST_FALSE;
+			}
+			i++;
+		}
+	}
+	
+	return NAO_EXISTE;
 }
 
-void insereNumInt (char *nome, int valor, int contexto)
+int insereNumInt (char *nome, int valor, int contexto)
 {
+	int retorno;
     simbolo p;
     p.nome=nome;
-    p.tipo = 0;
+	p.tipo = NUM_INT;
     p.contexto = contexto;
     p.valori=valor;
 	p.end_relativo=getEndRelativo();
 	p.valorf=-1.0;
-    insere(p);
-    ++numero_simbolos;
+    retorno = insere(p);
+	if(retorno ==1)
+	    ++numero_simbolos;
+	return retorno;
 }
 
-void insereNumReal (char *nome, double valor, int contexto)
+int insereNumReal (char *nome, double valor, int contexto)
 {
+	int retorno;
     simbolo p;
     p.nome=nome;
-    p.tipo = 1;
+	p.tipo = NUM_REAL;
     p.contexto = contexto;
     p.valorf=valor;
 	p.end_relativo=getEndRelativo();
 	p.valori=-1;
-    insere(p);
-    ++numero_simbolos;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
 }
 
-void insereVarInt (char *nome, int contexto)
+int insereConstInt (char *nome, int valor, int contexto)
 {
+	int retorno;
+	simbolo p;
+	p.nome=nome;
+	p.tipo = CONST_INT;
+	p.contexto = contexto;
+	p.valori=valor;
+	p.end_relativo=getEndRelativo();
+	p.valorf=-1.0;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+ 	return retorno;
+}
+
+int insereConstReal (char *nome, double valor, int contexto)
+{
+	int retorno;
+	simbolo p;
+	p.nome=nome;
+	p.tipo = CONST_REAL;
+	p.contexto = contexto;
+	p.valorf=valor;
+	p.end_relativo=getEndRelativo();
+	p.valori=-1;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
+}
+
+int insereProcedure (char *nome, int contexto)
+{
+	int retorno;
+	simbolo p;
+	p.nome=nome;
+	p.tipo = PROCEDURE;
+	p.valorf=-1;
+	p.valori=-1;
+	p.contexto = contexto;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
+}
+
+int insereProgram (char *nome)
+{
+	int retorno;
+	simbolo p;
+	p.nome=nome;
+	p.tipo = PROGRAM;
+	p.valorf=-1;
+	p.valori=-1;
+	p.contexto = 0;
+	p.end_relativo=-1;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
+}
+
+
+int insereVarInt (char *nome, int contexto)
+{
+	int retorno;
 	simbolo p;
 	p.nome=nome;
 	p.tipo = VAR_INT;
@@ -96,12 +194,15 @@ void insereVarInt (char *nome, int contexto)
 	p.end_relativo=getEndRelativo();
 	p.valori=-1;
 	p.valorf=-1.0;
-	insere(p);
-	++numero_simbolos;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
 }
 
-void insereVarReal (char *nome, int contexto)
+int insereVarReal (char *nome, int contexto)
 {
+	int retorno;
 	simbolo p;
 	p.nome=nome;
 	p.tipo = VAR_REAL;
@@ -109,12 +210,15 @@ void insereVarReal (char *nome, int contexto)
 	p.end_relativo=getEndRelativo();
 	p.valori=-1;
 	p.valorf=-1.0;
-	insere(p);
-	++numero_simbolos;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
 }
 
-void insereParamInt (char *nome, int contexto)
+int insereParamInt (char *nome, int contexto)
 {
+	int retorno;
 	simbolo p;
 	p.nome=nome;
 	p.tipo = PARAM_INT;
@@ -122,12 +226,15 @@ void insereParamInt (char *nome, int contexto)
 	p.end_relativo=getEndRelativo();
 	p.valori=-1;
 	p.valorf=-1.0;
-	insere(p);
-	++numero_simbolos;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
 }
 
-void insereParamReal (char *nome, int contexto)
+int insereParamReal (char *nome, int contexto)
 {
+	int retorno;
 	simbolo p;
 	p.nome=nome;
 	p.tipo = PARAM_REAL;
@@ -135,60 +242,11 @@ void insereParamReal (char *nome, int contexto)
 	p.end_relativo=getEndRelativo();
 	p.valori=-1;
 	p.valorf=-1.0;
-	insere(p);
-	++numero_simbolos;
+	retorno = insere(p);
+	if(retorno ==1)
+		++numero_simbolos;
+	return retorno;
 }
-
-void insereConstInt (char *nome, int valor, int contexto)
-{
-    simbolo p;
-    p.nome=nome;
-    p.tipo = 2;
-    p.contexto = contexto;
-    p.valori=valor;
-	p.end_relativo=getEndRelativo();
-	p.valorf=-1.0;
-    insere(p);
-    ++numero_simbolos;
-}
-
-void insereConstReal (char *nome, double valor, int contexto)
-{
-    simbolo p;
-    p.nome=nome;
-    p.tipo = 3;
-    p.contexto = contexto;
-    p.valorf=valor;
-	p.end_relativo=getEndRelativo();
-	p.valori=-1;
-    insere(p);
-    ++numero_simbolos;
-}
-
-void insereProcedure (char *nome, int contexto)
-{
-    simbolo p;
-    p.nome=nome;
-    p.tipo = 4;
-    p.contexto = contexto;
-    insere(p);
-    ++numero_simbolos;
-}
-
-void insereProgram (char *nome)
-{
-	simbolo p;
-	p.nome=nome;
-	p.tipo = 5;
-	p.valorf=-1;
-	p.valori=-1;
-	p.contexto = 0;
-	p.end_relativo=-1;
-	insere(p);
-	++numero_simbolos;
-}
-
-
 
 int deleta (simbolo *tabela, simbolo p, int tamanho)
 {
