@@ -2,7 +2,7 @@ program prog;
 const c=30;
 var a:integer;
 var b:real;
-
+{
 procedure teste(x,y: integer);
 var z:real;
 var w,v:integer;
@@ -16,14 +16,15 @@ var w,v:integer;
 begin
 x:=y-2;
 end;
-
+}
 begin
-while a<12 do					{Erro aqui}
-begin
+{while a<12 do					
+begin }
+writeln(c,a);
 a:=c;
 b:=10.4;
-a:=c/a;
+a:=c+a;
 readln(a);
-teste(a;a);
-end;
-end.							{Erro aqui}
+{end;}
+end.							
+

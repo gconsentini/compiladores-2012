@@ -297,6 +297,7 @@ int removeTabela(simbolo p)
       for(j=i;j<numero_simbolos-1;++j)
           tabela[j]= tabela[j+1];
 	  numero_simbolos--;
+	  prox_end_relativo--;
 	  return 1;
      }
      return 0;

@@ -177,7 +177,6 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 																	if($4==INTEGER)
 																	{ 
 																		retorno = insereVarInt (cpystr, contexto);
-/* 																		printf("Insere retorna: %d inserindo %s \n", retorno, cpystr);  */
 																		if(retorno==REDECLARACAO)
 																			yyerror("Redeclaration of variables");
 																		else if(retorno ==CONFLITO)
@@ -186,7 +185,8 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 																		{
 																			sprintf(msg, "Variable %s already declared as a parameter",cpystr );
 																			yyerror(msg);
-																		}
+																		}	
+																		AlocaMemoria();
 																	} else if($4==REAL) 
 																	{ 
 																		retorno = insereVarReal (cpystr, contexto);
@@ -199,6 +199,7 @@ dc_v: | var_ variaveis doispontos tipo_var ponto_virgula {		int retorno;
 																			sprintf(msg, "Variable %s already declared as a parameter",cpystr );
 																			yyerror(msg);
 																		}
+																		AlocaMemoria();
 																	} 
 																	str=strtok(NULL,",");
 																}
@@ -330,6 +331,11 @@ cmd: readln_ abre_par variaveis fecha_par {
 													}else if(ret!=INTEGER) {
 														yyerror("Conflicting types between 'writeln' parameters");
 														break;
+													}else{
+														if(numerrors==0){ 
+															
+															fprintf( code_file, "CRVL IMPR \n" );
+														}
 													}
 													str=strtok(NULL,",");
 												}
@@ -506,7 +512,13 @@ fator: id {
 numero: num_integer { $$.type = INTEGER; $$.i_value = $1; } | num_real { $$.type = REAL; $$.f_value = $1; } | error { yyerror("Expected a number"); yyclearin; };
 
 %%
-
+int AlocaMemoria(){
+	if(numerrors==0){
+		fprintf(code_file, "ALME 1\n");
+	return 1;
+	}
+	return 0;
+}
 int main (int argc, char *argv[])
 {
 	register int i=0;
