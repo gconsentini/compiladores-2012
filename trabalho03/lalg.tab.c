@@ -560,17 +560,17 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   119,   119,   119,   120,   120,   121,   121,   122,   122,
-     123,   123,   125,   126,   126,   127,   129,   131,   131,   150,
-     150,   151,   151,   153,   153,   153,   180,   180,   181,   181,
-     182,   182,   184,   184,   185,   187,   189,   189,   191,   191,
-     191,   191,   193,   193,   195,   195,   210,   210,   212,   212,
-     214,   216,   218,   218,   220,   222,   222,   224,   224,   226,
-     226,   226,   226,   228,   229,   229,   230,   231,   232,   233,
-     249,   255,   256,   256,   257,   257,   258,   262,   262,   264,
-     265,   266,   267,   268,   269,   270,   272,   285,   285,   286,
-     288,   288,   290,   291,   293,   295,   295,   297,   298,   300,
-     308,   308,   310,   310,   310
+       0,   120,   120,   120,   121,   121,   122,   122,   123,   123,
+     124,   124,   126,   127,   127,   128,   130,   132,   132,   151,
+     151,   152,   152,   154,   154,   154,   181,   181,   182,   182,
+     183,   183,   185,   185,   186,   188,   190,   190,   192,   192,
+     192,   192,   194,   194,   196,   196,   211,   211,   213,   213,
+     215,   217,   219,   219,   221,   223,   223,   225,   225,   227,
+     227,   227,   227,   229,   230,   230,   231,   232,   233,   234,
+     251,   257,   258,   258,   259,   259,   260,   264,   264,   266,
+     267,   268,   269,   270,   271,   272,   274,   287,   287,   288,
+     290,   290,   292,   293,   295,   304,   304,   306,   307,   309,
+     317,   317,   319,   319,   319
 };
 #endif
 
@@ -1635,63 +1635,63 @@ yyreduce:
         case 2:
 
 /* Line 1806 of yacc.c  */
-#line 119 "lalg.y"
+#line 120 "lalg.y"
     { insereProgram ((yyvsp[(2) - (2)].name)); }
     break;
 
   case 4:
 
 /* Line 1806 of yacc.c  */
-#line 120 "lalg.y"
+#line 121 "lalg.y"
     { yyerror("Expected: program"); yyclearin; }
     break;
 
   case 6:
 
 /* Line 1806 of yacc.c  */
-#line 121 "lalg.y"
+#line 122 "lalg.y"
     { yyerror("Expected: program"); yyclearin; }
     break;
 
   case 8:
 
 /* Line 1806 of yacc.c  */
-#line 122 "lalg.y"
+#line 123 "lalg.y"
     { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; }
     break;
 
   case 10:
 
 /* Line 1806 of yacc.c  */
-#line 123 "lalg.y"
+#line 124 "lalg.y"
     { insereProgram ((yyvsp[(2) - (2)].name)); }
     break;
 
   case 11:
 
 /* Line 1806 of yacc.c  */
-#line 123 "lalg.y"
+#line 124 "lalg.y"
     { yyerror("Expected: '.'"); }
     break;
 
   case 13:
 
 /* Line 1806 of yacc.c  */
-#line 126 "lalg.y"
+#line 127 "lalg.y"
     { yyerror("Expected: begin or declaration of variables and constants");yyclearin; }
     break;
 
   case 15:
 
 /* Line 1806 of yacc.c  */
-#line 127 "lalg.y"
+#line 128 "lalg.y"
     { yyerror("Expected: end"); }
     break;
 
   case 18:
 
 /* Line 1806 of yacc.c  */
-#line 131 "lalg.y"
+#line 132 "lalg.y"
     { int retorno;
 																	if((yyvsp[(4) - (6)].symbol).type==INTEGER)
 																	{ 
@@ -1715,21 +1715,21 @@ yyreduce:
   case 19:
 
 /* Line 1806 of yacc.c  */
-#line 150 "lalg.y"
+#line 151 "lalg.y"
     { yyerror("Expected: '='"); }
     break;
 
   case 21:
 
 /* Line 1806 of yacc.c  */
-#line 151 "lalg.y"
+#line 152 "lalg.y"
     { yyerror("Expected: ';'"); }
     break;
 
   case 24:
 
 /* Line 1806 of yacc.c  */
-#line 153 "lalg.y"
+#line 154 "lalg.y"
     {		int retorno;
 																str=malloc(400 * sizeof(char));
 																str=strtok(listavar,",");
@@ -1761,70 +1761,70 @@ yyreduce:
   case 26:
 
 /* Line 1806 of yacc.c  */
-#line 180 "lalg.y"
+#line 181 "lalg.y"
     { yyerror("Expected an identifier"); }
     break;
 
   case 28:
 
 /* Line 1806 of yacc.c  */
-#line 181 "lalg.y"
+#line 182 "lalg.y"
     { yyerror("Expected: ':'");yyclearin; }
     break;
 
   case 30:
 
 /* Line 1806 of yacc.c  */
-#line 182 "lalg.y"
+#line 183 "lalg.y"
     { yyerror("Expected: ';'");yyclearin; }
     break;
 
   case 32:
 
 /* Line 1806 of yacc.c  */
-#line 184 "lalg.y"
+#line 185 "lalg.y"
     { (yyval.i_number) = REAL; }
     break;
 
   case 33:
 
 /* Line 1806 of yacc.c  */
-#line 184 "lalg.y"
+#line 185 "lalg.y"
     { (yyval.i_number) = INTEGER; }
     break;
 
   case 34:
 
 /* Line 1806 of yacc.c  */
-#line 185 "lalg.y"
+#line 186 "lalg.y"
     { yyerror("Incorrect type: Expected integer or real"); yyclearin; }
     break;
 
   case 35:
 
 /* Line 1806 of yacc.c  */
-#line 187 "lalg.y"
+#line 188 "lalg.y"
     { strcat(listavar,(yyvsp[(1) - (2)].name)); strcat(listavar,","); }
     break;
 
   case 39:
 
 /* Line 1806 of yacc.c  */
-#line 191 "lalg.y"
+#line 192 "lalg.y"
     { contexto=1; int retorno; if(insereProcedure ((yyvsp[(2) - (2)].name),contexto)!=1) yyerror("Redefinition of procedure");}
     break;
 
   case 40:
 
 /* Line 1806 of yacc.c  */
-#line 191 "lalg.y"
+#line 192 "lalg.y"
     { contexto=0; }
     break;
 
   case 44:
 
 /* Line 1806 of yacc.c  */
-#line 195 "lalg.y"
+#line 196 "lalg.y"
     {	
 												str=malloc(400 * sizeof(char));
 												str=strtok(listavar,",");
@@ -1846,35 +1846,35 @@ yyreduce:
   case 46:
 
 /* Line 1806 of yacc.c  */
-#line 210 "lalg.y"
+#line 211 "lalg.y"
     { yyerror("Expected: ':'"); yyclearin; }
     break;
 
   case 61:
 
 /* Line 1806 of yacc.c  */
-#line 226 "lalg.y"
+#line 227 "lalg.y"
     { yyerror("Command not recognized"); yyclearin; }
     break;
 
   case 64:
 
 /* Line 1806 of yacc.c  */
-#line 229 "lalg.y"
+#line 230 "lalg.y"
     { printf("Write"); }
     break;
 
   case 67:
 
 /* Line 1806 of yacc.c  */
-#line 231 "lalg.y"
+#line 232 "lalg.y"
     { yyerror("Expected: 'until'"); yyclearin; }
     break;
 
   case 69:
 
 /* Line 1806 of yacc.c  */
-#line 233 "lalg.y"
+#line 234 "lalg.y"
     { 
 								if(busca((yyvsp[(1) - (3)].name),ATTR,contexto)==CONST_FALSE){
 									sprintf(msg, "Identifier %s declared as a constant", (yyvsp[(1) - (3)].name));
@@ -1885,6 +1885,7 @@ yyreduce:
 									yyerror(msg);
 								}
 								if(busca((yyvsp[(1) - (3)].name),ATTR,contexto)!=(yyvsp[(3) - (3)].symbol).type && (yyvsp[(3) - (3)].symbol).type!=TNULL){
+									printf("Tipo: %d\n", (yyvsp[(3) - (3)].symbol).type);
 									sprintf(msg, "Conflicting types, ", (yyvsp[(1) - (3)].name));
 									if((yyvsp[(3) - (3)].symbol).type==INTEGER || (yyvsp[(3) - (3)].symbol).type==VAR_INT) strcat(msg, "try to assign a INTEGER to REAL");
 									if((yyvsp[(3) - (3)].symbol).type==REAL || (yyvsp[(3) - (3)].symbol).type==VAR_REAL) strcat(msg, "try to assign a REAL to INTEGER");
@@ -1896,7 +1897,7 @@ yyreduce:
   case 70:
 
 /* Line 1806 of yacc.c  */
-#line 249 "lalg.y"
+#line 251 "lalg.y"
     {
 					if(busca((yyvsp[(1) - (2)].name),PROCEDURE,contexto)==NAO_EXISTE){
 						sprintf(msg, "Procedure %s not previously declared", (yyvsp[(1) - (2)].name));
@@ -1908,35 +1909,35 @@ yyreduce:
   case 72:
 
 /* Line 1806 of yacc.c  */
-#line 256 "lalg.y"
+#line 258 "lalg.y"
     { yyerror("Expected: 'then'"); yyclearin; }
     break;
 
   case 74:
 
 /* Line 1806 of yacc.c  */
-#line 257 "lalg.y"
+#line 259 "lalg.y"
     { yyerror("Expected: 'do'"); yyclearin; }
     break;
 
   case 78:
 
 /* Line 1806 of yacc.c  */
-#line 262 "lalg.y"
+#line 264 "lalg.y"
     {yyclearin;}
     break;
 
   case 85:
 
 /* Line 1806 of yacc.c  */
-#line 270 "lalg.y"
+#line 272 "lalg.y"
     { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }
     break;
 
   case 86:
 
 /* Line 1806 of yacc.c  */
-#line 272 "lalg.y"
+#line 274 "lalg.y"
     { 
 								if((yyvsp[(2) - (2)].symbol).type==TNULL){
 									printf("AquiTNULL\n");
@@ -1945,7 +1946,7 @@ yyreduce:
 									if((yyvsp[(1) - (2)].symbol).type==REAL) (yyval.symbol).f_value=(yyvsp[(1) - (2)].symbol).f_value;
 									if((yyvsp[(1) - (2)].symbol).type==VAR_INT || (yyvsp[(1) - (2)].symbol).type==VAR_REAL) (yyval.symbol).name=(yyvsp[(1) - (2)].symbol).name;  
 								}else{
-									(yyval.symbol).type==TNULL;
+									(yyval.symbol).type=TNULL;
 									printf("Aqui\n");
 								}
 							}
@@ -1954,28 +1955,42 @@ yyreduce:
   case 90:
 
 /* Line 1806 of yacc.c  */
-#line 288 "lalg.y"
+#line 290 "lalg.y"
     { (yyval.symbol).type==TNULL; }
     break;
 
   case 91:
 
 /* Line 1806 of yacc.c  */
-#line 288 "lalg.y"
-    { (yyval.symbol).type==INTEGER; }
+#line 290 "lalg.y"
+    { (yyval.symbol).type==(yyvsp[(2) - (3)].symbol).type; }
     break;
 
   case 94:
 
 /* Line 1806 of yacc.c  */
-#line 293 "lalg.y"
-    { (yyval.symbol).type = (yyvsp[(2) - (3)].symbol).type; if((yyvsp[(2) - (3)].symbol).type==INTEGER) (yyval.symbol).i_value=(yyvsp[(2) - (3)].symbol).i_value; if((yyvsp[(2) - (3)].symbol).type==REAL) (yyval.symbol).f_value=(yyvsp[(2) - (3)].symbol).f_value;  if((yyvsp[(2) - (3)].symbol).type==VAR_INT || (yyvsp[(2) - (3)].symbol).type==VAR_REAL) (yyval.symbol).name=(yyvsp[(2) - (3)].symbol).name;  }
+#line 295 "lalg.y"
+    { 
+									if((yyvsp[(3) - (3)].symbol).type==TNULL){
+										(yyval.symbol).type = (yyvsp[(2) - (3)].symbol).type; 
+										if((yyvsp[(2) - (3)].symbol).type==INTEGER) (yyval.symbol).i_value=(yyvsp[(2) - (3)].symbol).i_value; 
+										if((yyvsp[(2) - (3)].symbol).type==REAL) (yyval.symbol).f_value=(yyvsp[(2) - (3)].symbol).f_value;  
+										if((yyvsp[(2) - (3)].symbol).type==VAR_INT || (yyvsp[(2) - (3)].symbol).type==VAR_REAL) (yyval.symbol).name=(yyvsp[(2) - (3)].symbol).name;  
+									}
+								}
+    break;
+
+  case 95:
+
+/* Line 1806 of yacc.c  */
+#line 304 "lalg.y"
+    { (yyval.symbol).type==TNULL; }
     break;
 
   case 99:
 
 /* Line 1806 of yacc.c  */
-#line 300 "lalg.y"
+#line 309 "lalg.y"
     { 
 			ret=busca((yyvsp[(1) - (1)].name),ATTR,contexto);
 			if(ret==NAO_EXISTE){
@@ -1990,35 +2005,35 @@ yyreduce:
   case 100:
 
 /* Line 1806 of yacc.c  */
-#line 308 "lalg.y"
+#line 317 "lalg.y"
     { (yyval.symbol).type = (yyvsp[(1) - (1)].symbol).type; if((yyvsp[(1) - (1)].symbol).type==INTEGER) (yyval.symbol).i_value=(yyvsp[(1) - (1)].symbol).i_value; if((yyvsp[(1) - (1)].symbol).type==REAL) (yyval.symbol).f_value=(yyvsp[(1) - (1)].symbol).f_value;  }
     break;
 
   case 102:
 
 /* Line 1806 of yacc.c  */
-#line 310 "lalg.y"
+#line 319 "lalg.y"
     { (yyval.symbol).type = INTEGER; (yyval.symbol).i_value = (yyvsp[(1) - (1)].i_number); }
     break;
 
   case 103:
 
 /* Line 1806 of yacc.c  */
-#line 310 "lalg.y"
+#line 319 "lalg.y"
     { (yyval.symbol).type = REAL; (yyval.symbol).f_value = (yyvsp[(1) - (1)].r_number); }
     break;
 
   case 104:
 
 /* Line 1806 of yacc.c  */
-#line 310 "lalg.y"
+#line 319 "lalg.y"
     { yyerror("Expected a number"); yyclearin; }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 2022 "lalg.tab.c"
+#line 2037 "lalg.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2249,7 +2264,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 312 "lalg.y"
+#line 321 "lalg.y"
 
 
 int main (int argc, char *argv[])

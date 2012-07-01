@@ -62,6 +62,7 @@
 		double f_value;
 		int type;
 		char* name;
+		char math_op;
 	} symbol;
 	char math_op;
 }
@@ -109,8 +110,11 @@
 %type <symbol> fator
 %type <symbol> termo
 %type <symbol> outros_termos
+%type <symbol> mais_fatores
 %type <symbol> expressao
 %type <i_number> tipo_var
+%type <math_op> op_un
+%type <math_op> op_ad
 /* %type <i_number> pos_id */
 /* %type <i_number> cmd */
 %nonassoc error
@@ -226,7 +230,24 @@ pfalse: | else_ cmd;
 comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Command not recognized"); yyclearin; }  comandos;
 
 cmd: readln_ abre_par variaveis fecha_par | 
-	writeln_ { printf("Write"); } abre_par variaveis fecha_par |
+	writeln_ { printf("Write"); } abre_par variaveis fecha_par {
+																	
+																	str=malloc(400 * sizeof(char));
+																	str=strtok(listavar,",");
+																	while(str!=NULL){
+																		cpystr=malloc(400 * sizeof(char));
+																		strcpy(cpystr,str);
+																		
+																		
+																		
+																		str=strtok(NULL,",");
+																	}
+																	listavar[0]='\0';	
+																	
+																	
+																	
+																	
+																 } |
 	repeat_ comandos until_ condicao |
 	repeat_ comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
 	if_ condicao then_ cmd pfalse |
@@ -271,31 +292,56 @@ relacao: 	operador_comp_igual  |
 
 expressao: termo outros_termos { 
 								if($2.type==TNULL){
-									printf("AquiTNULL\n");
 									$$.type = $1.type; 
 									if($1.type==INTEGER) $$.i_value=$1.i_value; 
 									if($1.type==REAL) $$.f_value=$1.f_value;
 									if($1.type==VAR_INT || $1.type==VAR_REAL) $$.name=$1.name;  
 								}else{
-									$$.type==TNULL;
-									printf("Aqui\n");
+									$$.type=TNULL;
+									if($2.type==REAL || $1.type==REAL){
+										$$.type=REAL;
+									} else if ($2.type==INTEGER || $1.type==INTEGER){
+										$$.type=INTEGER;
+									}
 								}
 							};
 
-op_un: | operador_mat_soma |
-		operador_mat_sub;
+op_un: { $$.math_op='0'; } | operador_mat_soma { $$.math_op='+'; } |
+		operador_mat_sub { $$.math_op='-'; } ;
 
-outros_termos: { $$.type==TNULL; } | op_ad termo outros_termos { $$.type==$2.type; };
+outros_termos: { $$.type==TNULL; } | op_ad termo outros_termos { 
+																	$$.type==$2.type; 
+																	if($3.type==TNULL){
+																		$$.type = $2.type; 
+																		if($2.type==INTEGER) $$.i_value=$2.i_value; 
+																		if($2.type==REAL) $$.f_value=$2.f_value;
+																		if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  
+																	}else{
+																		$$.type=TNULL;
+																		if($2.type==REAL || $3.type==REAL){
+																			$$.type=REAL;
+																		} else if ($2.type==INTEGER || $3.type==INTEGER){
+																			$$.type=INTEGER;
+																		}
+																	}
+																 };
 
-op_ad: 	operador_mat_soma |
-		operador_mat_sub;
+op_ad: 	operador_mat_soma { $$.math_op='+'; } |
+		operador_mat_sub { $$.math_op='-'; };
 
-termo: op_un fator mais_fatores { $$.type = $2.type; if($2.type==INTEGER) $$.i_value=$2.i_value; if($2.type==REAL) $$.f_value=$2.f_value;  if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  } ;
+termo: op_un fator mais_fatores { 
+									if($3.type==TNULL){
+										$$.type = $2.type; 
+										if($2.type==INTEGER) $$.i_value=$2.i_value; 
+										if($2.type==REAL) $$.f_value=$2.f_value;  
+										if($2.type==VAR_INT || $2.type==VAR_REAL) $$.name=$2.name;  
+									}
+								};
 
-mais_fatores: | op_mult fator mais_fatores;
+mais_fatores: { $$.type==TNULL; } | op_mult fator mais_fatores;
 
-op_mult:  	operador_mat_mult | 
-			operador_mat_div;
+op_mult:  	operador_mat_mult { $$.math_op='*'; } | 
+			operador_mat_div { $$.math_op='/'; };
 
 fator: id { 
 			ret=busca($1,ATTR,contexto);
