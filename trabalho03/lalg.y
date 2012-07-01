@@ -56,6 +56,8 @@
 	char *lastprocedure;
 	char msg[300];
 
+	FILE *code_file;
+
 	
 %}
 /* 	Declaração de tokens de bison  */
@@ -227,10 +229,15 @@ lista_par: variaveis doispontos tipo_var 	{
 													cpystr=malloc(400 * sizeof(char));
 													strcpy(cpystr,str);
 													if($3==INTEGER){ 
-														insereParamInt (cpystr, contexto, lastprocedure, ordem);
+														ret=insereParamInt (cpystr, contexto, lastprocedure, ordem);
 													} else if($3==REAL) { 
-														insereParamReal (cpystr, contexto, lastprocedure, ordem);
+														ret=insereParamReal (cpystr, contexto, lastprocedure, ordem);
 													} 
+													if(ret == REDECLARACAO_PARAM)
+													{
+														sprintf(msg, "Parameter %s already declared",cpystr );
+														yyerror(msg);
+													}
 													str=strtok(NULL,",");
 													ordem++;
 												}
@@ -509,11 +516,20 @@ int main (int argc, char *argv[])
 	yyin = fopen( argv[0], "r" ); /*Passa a entrada pelo arquivo de parametro*/
 /*  	yydebug = 1;  Utilizado para Degub */
 	alocaTabelaSimbolos();
+	//Inicia escrita do código
+	code_file = fopen("code.p", "w");
+	fprintf( code_file, "INPP\n" );
+
 	yyparse();
+
+	fclose(code_file);
+
 	if(numerrors==0)
 		printf ( "Parse Completed\n" );
-	else
+	else{
+		remove("code.p");
 		printf ( "Parse Completed with %d errors\n", numerrors);
+	}
 	printTabela();
 	return 0;
 }

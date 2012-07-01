@@ -40,8 +40,10 @@ int insere (simbolo p)
 	 {
 		 /*se as variaveis tem o mesmo tipo e pertencem ao mesmo escopo. ERRO: redeclaracao de variavel*/
 		 while(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)==0){
-			 if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto)
+			if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && p.tipo!=PARAM_INT && p.tipo!=PARAM_REAL)
 				return REDECLARACAO;
+			else if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && (p.tipo==PARAM_INT || p.tipo!=PARAM_REAL) && strcmp(tabela[i].procedure,p.procedure)==0)
+				return REDECLARACAO_PARAM;
 			 
 			 if(tabela[i].tipo != p.tipo && tabela[i].contexto == p.contexto && (tabela[i].tipo == PARAM_REAL || tabela[i].tipo ==PARAM_INT))
 				 return REDECLARACAO_PARAM;
@@ -110,7 +112,6 @@ int removeLocalVars()
 	while(i<numero_simbolos){
 		if(tabela[i].contexto==1){
 			if(tabela[i].tipo!=PARAM_INT && tabela[i].tipo!=PARAM_REAL && tabela[i].tipo!=PROCEDURE){
-				printf("Removeu da tabela: %s\n", tabela[i].nome);
 				removeTabela(tabela[i]);
 				fflush(stdout);
 				i--;
@@ -308,22 +309,3 @@ void printTabela(){
 		printf("|%d\t%d\t%8s\t%8d\t%lf\t%d\t\t%d\t%16s %8d\t|\n",i,tabela[i].tipo,tabela[i].nome, tabela[i].valori, tabela[i].valorf, tabela[i].end_relativo, tabela[i].contexto,tabela[i].procedure, tabela[i].ordem);
 	}
 }
-/*
-int main(int argc, char **argv)
-{
-    alocaTabelaSimbolos();
-    
-    insereNumInt("baaaa",12,0);
-    insereNumReal("aaaa",12.876,0);
-    insereConstInt("vahne",12,0);
-    insereConstReal("fabio",1.2,0);
-    insereProcedure("isa",0);
-    
-    printf("%s %lf\n",tabela[0].nome,tabela[0].valorf);
-    printf("%s %d\n",tabela[1].nome,tabela[1].valori);  
-     printf("%s %lf\n",tabela[2].nome,tabela[2].valorf); 
-     printf("%s\n",tabela[3].nome);  
-     printf("%s %d\n",tabela[4].nome,tabela[4].valori);
-     
-    return 0;
-}*/
