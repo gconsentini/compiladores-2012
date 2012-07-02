@@ -1,9 +1,10 @@
 program prog;
-var a:real;
+var x:real;
+procedure nomep(x,y:real);
 begin
-repeat
-a:=12;
-writeln(a);
-until a<12;
+	x:=10;
+end;
+begin
+	x:=10;
 end.
 

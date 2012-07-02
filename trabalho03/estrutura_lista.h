@@ -71,13 +71,14 @@ int insereNumInt (char *nome, int valor, int contexto);
 int insereNumReal (char *nome, double valor, int contexto);
 int insereConstInt (char *nome, int valor, int contexto);
 int insereConstReal (char *nome, double valor, int contexto);
-int insereProcedure (char *nome, int contexto);
+int insereProcedure (char *nome, int contexto, int linha);
+int buscaProcedure(int i);
+int retornaTamanhoTabela();
 int insereProgram (char *nome);
 int busca (char *nome,int tipo,int contexto);
 void printTabela();
 int buscaSimbolo(simbolo *p);
 int removeTabela(simbolo p);
-
 void carregaSimbolo(char *nome, int contexto, char *procedure);
 
 #endif

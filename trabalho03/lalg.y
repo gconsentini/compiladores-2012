@@ -111,7 +111,20 @@
 				p->contexto=contexto;
 				p->procedure=procedure;
 				buscaSimbolo(p);
+				printf("Armazena: %s procedure: %s, contexto: %d, tipo: %d\n", p->nome, p->procedure, p->contexto, p->tipo);
 				if(p->tipo==VAR_INT || p->tipo==VAR_REAL){
+					fprintf(code_file, "ARMZ %d\n", p->end_relativo);
+				}
+			}
+			if(contexto==1){
+				simbolo *p;
+				p = malloc (sizeof(simbolo));
+				p->nome=nome;
+				p->contexto=contexto;
+				p->procedure=procedure;
+				buscaSimbolo(p);
+				printf("Armazena: %s procedure: %s, contexto: %d, tipo: %d\n", p->nome, p->procedure, p->contexto, p->tipo);
+				if(p->tipo==VAR_INT || p->tipo==VAR_REAL || p->tipo==PARAM_INT || p->tipo==PARAM_REAL){
 					fprintf(code_file, "ARMZ %d\n", p->end_relativo);
 				}
 			}
@@ -149,6 +162,26 @@
 		return num_linha;
 	}
 
+	int getNumCaracteres(int linha)
+	{
+		char caracter = 0;
+		int num_linha=0;
+		int num_caracter = 0;
+		FILE *arquivo;
+
+		arquivo =  fopen("code.p","r");
+
+ 		do
+ 		{
+ 			caracter = fgetc(arquivo);
+			if(caracter == '\n') num_linha++;
+ 		} while(num_linha<linha);
+
+		num_caracter=ftell(arquivo);
+		fclose(arquivo);
+		return num_caracter-1;//para tirar o \n inserido no lugar do procedure
+	}
+
 	void escreveNaLinha(int linha_escrita,char *comando, int linha_desvio){
 		char *restoArquivo;
  		int num_linha = 0;
@@ -165,6 +198,28 @@
 		fprintf(code_file,"%s",restoArquivo);
  		fseek(code_file,0,SEEK_END);
  	}
+
+	void escreveProcedimentos(int enderecoPrincipal)
+	{
+		int i=0;
+		int tamanho = retornaTamanhoTabela();
+		int posicao;
+		
+		while(i<tamanho)
+		{
+			posicao = buscaProcedure(i);
+			if(posicao !=-1)
+			{
+				printf("NUm caracteres %d NUm linha %d",getNumCaracteres(posicao-1),posicao);
+				fseek(code_file,getNumCaracteres(posicao-1),SEEK_SET);
+				fprintf(code_file,"DSVI %d",enderecoPrincipal);
+				
+			}
+			++i;
+		}
+		fseek(code_file,0,SEEK_END);
+
+	}
 	
 %}
 /* 	Declaração de tokens de bison  */
@@ -248,9 +303,9 @@ programa: program_ id { insereProgram ($2); } ponto_virgula corpo ponto
 	  | program_ id error { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; } corpo  ponto
 	  | program_ id { insereProgram ($2); } ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
 
-corpo: dc begin_ comandos end_
-	| dc error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
-	| dc begin_ comandos error { yyerror("Expected: end"); };
+corpo: dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } begin_ comandos end_
+	| dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
+	| dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } begin_ comandos error { yyerror("Expected: end"); };
 
 dc: dc_c dc_v dc_p;
 
@@ -326,7 +381,14 @@ variaveis: id mais_var { strcatinv(listavar,$1); strcatinv(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto,___)!=OK) yyerror("Redefinition of procedure"); lastprocedure=$2; } parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2); } dc_p;
+dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto,(getNumLinha(getCaracteresCodigo())+2))!=OK) 
+											yyerror("Redefinition of procedure"); 
+									 else
+									{
+										fprintf(code_file,"\n");
+										lastprocedure=$2;
+									}
+						} parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2);lastprocedure[0]='\0'; } dc_p;
 
 parametros: | abre_par lista_par fecha_par;
 
@@ -339,8 +401,10 @@ lista_par: variaveis doispontos tipo_var 	{
 													strcpy(cpystr,str);
 													if($3==INTEGER){ 
 														ret=insereParamInt (cpystr, contexto, lastprocedure, ordem);
+														fprintf( code_file, "COPVL\n" );
 													} else if($3==REAL) { 
 														ret=insereParamReal (cpystr, contexto, lastprocedure, ordem);
+														fprintf( code_file, "COPVL\n" );
 													} 
 													if(ret == REDECLARACAO_PARAM)
 													{
@@ -688,7 +752,7 @@ int main (int argc, char *argv[])
 	
 
 	yyparse();
-
+	fprintf( code_file, "PARA\n" );
 	fclose(code_file);
 
 	if(numerrors==0)

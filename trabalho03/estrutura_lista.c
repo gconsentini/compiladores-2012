@@ -96,19 +96,24 @@ int buscaSimbolo(simbolo *p)
 {
 	int i=0;
 	fflush(stdout);
-	while(i<numero_simbolos && strcmp(tabela[i].nome,p->nome)<=0 && tabela[i].contexto==p->contexto && (tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL || tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL || tabela[i].tipo==PARAM_INT || tabela[i].tipo==PARAM_REAL)){
-		if(strcmp(tabela[i].nome,p->nome)==0){
-			if(tabela[i].contexto==0){
-				p->tipo=tabela[i].tipo;
-				p->valori=tabela[i].valori;
-				p->valorf=tabela[i].valorf;
-				p->end_relativo=tabela[i].end_relativo;
-			}else{
-				if(strcmp(tabela[i].procedure,p->procedure)==0){
+// 	printf("Simbolo: %s, contexto: %d, compare: %d num_simbolos: %d, var real: %d, x tipo: %d\n", p->nome, p->contexto, strcmp("x",p->nome), numero_simbolos, VAR_REAL, tabela[1].tipo);
+	while(i<numero_simbolos && strcmp(tabela[i].nome,p->nome)<=0){
+// 		printf("Simbolo: %s Contexto: %d\n", tabela[i].nome,tabela[i].contexto);
+		if((tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL || tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL || tabela[i].tipo==PARAM_INT || tabela[i].tipo==PARAM_REAL)){
+			if(strcmp(tabela[i].nome,p->nome)==0 && tabela[i].contexto==p->contexto){
+				if(p->contexto==0){
+					
 					p->tipo=tabela[i].tipo;
 					p->valori=tabela[i].valori;
 					p->valorf=tabela[i].valorf;
 					p->end_relativo=tabela[i].end_relativo;
+				}else{
+					if(strcmp(tabela[i].procedure,p->procedure)==0){
+						p->tipo=tabela[i].tipo;
+						p->valori=tabela[i].valori;
+						p->valorf=tabela[i].valorf;
+						p->end_relativo=tabela[i].end_relativo;
+					}
 				}
 			}
 		}
@@ -222,36 +227,18 @@ int insereProcedure (char *nome, int contexto, int linha)
 	return retorno;
 }
 
-int buscaProcedure (char *nome)
+int buscaProcedure(int i)
 {
-	int retorno;
-	simbolo p;
-	p.nome=nome;
-	p.tipo = PROCEDURE;
-	p.valorf=-1;
-	p.valori=linha;
-	p.contexto = contexto;
-	p.procedure=malloc(1*sizeof(char));
-	p.procedure[0]='\0';
-		p.ordem=0;
-		retorno = insere(p);
-		if(retorno ==OK)
-			++numero_simbolos;
-		return retorno;
+		if(tabela[i].tipo==PROCEDURE)
+			return tabela[i].valori;
+		else
+			return -1;
+
 }
 
-int buscaInicioProcedure(char *nome)
+int retornaTamanhoTabela()
 {
-	int i=0;
-	while(i<numero_simbolos){
-		if(strcmp(tabela[i].nome,nome)==0 && tabela[i].tipo==PROCEDURE){
-			if(contexto==1){
-				return tabela[i].valori;
-			}
-		}
-		i++;
-	}
-	return NAO_EXISTE;
+		return numero_simbolos;
 }
 
 int insereProgram (char *nome)
