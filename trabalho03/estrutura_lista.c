@@ -104,13 +104,38 @@ int buscaSimbolo(simbolo *p)
 				p->valorf=tabela[i].valorf;
 				p->end_relativo=tabela[i].end_relativo;
 			}else{
-			 //verificar se procedure está correto	
+				if(strcmp(tabela[i].procedure,p->procedure)==0){
+					p->tipo=tabela[i].tipo;
+					p->valori=tabela[i].valori;
+					p->valorf=tabela[i].valorf;
+					p->end_relativo=tabela[i].end_relativo;
+				}
 			}
 		}
 		i++;
 	}
 	return NAO_EXISTE;
 }
+
+int buscaTipoVarCons(char *nome,int contexto, char *procedure)
+{
+	int i=0;
+	while(i<numero_simbolos){
+		if(strcmp(tabela[i].nome,nome)==0 && (tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL || tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL)){
+			if(contexto==0){
+				return tabela[i].tipo;
+			}else{
+				if(strcmp(tabela[i].procedure,procedure)==0){
+					return tabela[i].tipo;
+				}
+			}
+		}
+		i++;
+	}
+			
+	return NAO_EXISTE;
+}
+
 
 int buscaTipoParam(char *procedure,int ordem)
 {
@@ -179,14 +204,14 @@ int insereConstReal (char *nome, double valor, int contexto)
 	return retorno;
 }
 
-int insereProcedure (char *nome, int contexto)
+int insereProcedure (char *nome, int contexto, int linha)
 {
 	int retorno;
 	simbolo p;
 	p.nome=nome;
 	p.tipo = PROCEDURE;
 	p.valorf=-1;
-	p.valori=-1;
+	p.valori=linha;
 	p.contexto = contexto;
 	p.procedure=malloc(1*sizeof(char));
 	p.procedure[0]='\0';
@@ -195,6 +220,38 @@ int insereProcedure (char *nome, int contexto)
 	if(retorno ==OK)
 		++numero_simbolos;
 	return retorno;
+}
+
+int buscaProcedure (char *nome)
+{
+	int retorno;
+	simbolo p;
+	p.nome=nome;
+	p.tipo = PROCEDURE;
+	p.valorf=-1;
+	p.valori=linha;
+	p.contexto = contexto;
+	p.procedure=malloc(1*sizeof(char));
+	p.procedure[0]='\0';
+		p.ordem=0;
+		retorno = insere(p);
+		if(retorno ==OK)
+			++numero_simbolos;
+		return retorno;
+}
+
+int buscaInicioProcedure(char *nome)
+{
+	int i=0;
+	while(i<numero_simbolos){
+		if(strcmp(tabela[i].nome,nome)==0 && tabela[i].tipo==PROCEDURE){
+			if(contexto==1){
+				return tabela[i].valori;
+			}
+		}
+		i++;
+	}
+	return NAO_EXISTE;
 }
 
 int insereProgram (char *nome)

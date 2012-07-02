@@ -41,6 +41,14 @@
 #define PROCEDURE_FALSE -3
 #define VAR_FALSE -4
 
+//Tipos de relação
+#define CPME 400
+#define CPMA 401
+#define CPIG 402
+#define CDES 403
+#define CPMI 404
+#define CMAI 405
+
 	#include <math.h>
 	#include <stdio.h>
 	#include <string.h>
@@ -51,6 +59,8 @@
 	int numerrors=0;
 	int contexto=0;
 	int ret, contparametros;
+	int retorno_if=0,comeco_while=0,retorno_while=0,comeco_repeat=0;
+	int linha_desvio;
 	extern int num_lines;
 	char listavar[400];
 	char *str;
@@ -114,6 +124,47 @@
 		strcat(aux,l1);
 		strcpy(l1, aux);
 	}
+	int isVarOrConst(int type){
+		if(type==VAR_INT || type==VAR_REAL || type==CONST_INT || type==CONST_REAL) return 1;
+		return 0;
+	}
+	int getCaracteresCodigo(){
+		return ftell(code_file);
+	}
+
+	int getNumLinha(int posicao)
+	{
+		char caracter = 0;
+		int num_linha = 0;
+		FILE *arquivo;
+
+		arquivo =  fopen("code.p","r");
+
+ 		do
+ 		{
+ 			caracter = fgetc(arquivo);
+			if(caracter == '\n') num_linha++;
+ 		} while(ftell(arquivo) < posicao);
+		fclose(arquivo);
+		return num_linha;
+	}
+
+	void escreveNaLinha(int linha_escrita,char *comando, int linha_desvio){
+		char *restoArquivo;
+ 		int num_linha = 0;
+ 		int posicaoFim = ftell(code_file);
+
+		fseek(code_file,linha_escrita,SEEK_SET);
+		int posicaoInicio = ftell(code_file);
+		restoArquivo=malloc((posicaoFim-posicaoInicio)*sizeof(char));
+
+		fread(restoArquivo, sizeof(char),posicaoFim-posicaoInicio,code_file);
+		fseek(code_file,linha_escrita,SEEK_SET);
+
+ 		fprintf(code_file,"%s %d\n",comando,linha_desvio);
+		fprintf(code_file,"%s",restoArquivo);
+ 		fseek(code_file,0,SEEK_END);
+ 	}
 	
 %}
 /* 	Declaração de tokens de bison  */
@@ -178,6 +229,7 @@
 %type <symbol> mais_fatores
 %type <symbol> expressao
 %type <i_number> tipo_var
+%type <i_number> relacao
 /* %type <name> parametros */
 /* %type <name> lista_par */
 %type <math_op> op_un
@@ -274,7 +326,7 @@ variaveis: id mais_var { strcatinv(listavar,$1); strcatinv(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto)!=OK) yyerror("Redefinition of procedure"); lastprocedure=$2; } parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2); } dc_p;
+dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto,___)!=OK) yyerror("Redefinition of procedure"); lastprocedure=$2; } parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2); } dc_p;
 
 parametros: | abre_par lista_par fecha_par;
 
@@ -314,7 +366,7 @@ argumentos: id { strcatinv(listavar,$1); strcatinv(listavar,","); contparametros
 
 mais_ident: | ponto_virgula argumentos;
 
-pfalse: | else_ cmd; 
+pfalse: { escreveNaLinha(retorno_if,"DSVF",getNumLinha(getCaracteresCodigo())+2);  retorno_if = getCaracteresCodigo(); } | else_ { escreveNaLinha(retorno_if,"DSVF",getNumLinha(getCaracteresCodigo())+3);  retorno_if = getCaracteresCodigo(); } cmd  { escreveNaLinha(retorno_if,"DSVI",getNumLinha(getCaracteresCodigo())+2); }; 
 
 comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Command not recognized"); yyclearin; }  comandos;
 
@@ -422,9 +474,9 @@ cmd: readln_ abre_par variaveis fecha_par {
 											}
 											listavar[0]='\0';	
 										 } |
-	repeat_ comandos until_ condicao |
-	repeat_ comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
-	if_ condicao then_ cmd pfalse |
+	repeat_ { comeco_repeat = getCaracteresCodigo(); } comandos until_ condicao {fprintf(code_file,"DSVF %d\n",getNumLinha(comeco_repeat)+1);} |
+	repeat_ { comeco_repeat = getCaracteresCodigo(); } comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
+	if_ condicao then_ { retorno_if = getCaracteresCodigo(); } cmd pfalse |
 	id atribuicao expressao { 
 								if(busca($1,ATTR,contexto)==CONST_FALSE){
 									sprintf(msg, "Identifier %s declared as a constant", $1);
@@ -439,7 +491,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 									sprintf(msg, "Conflicting types,try to assign a REAL to INTEGER %s", $1);
 									yyerror(msg);
 								}
-								carregaSimbolo($1,contexto,lastprocedure);
+								armazenaSimbolo($1,contexto,lastprocedure);
 							  } |
 	id { contparametros=0; } lista_arg {
 					ret=busca($1,PROCEDURE,contexto);//retorna o numero de parametros se declarado
@@ -477,19 +529,26 @@ cmd: readln_ abre_par variaveis fecha_par {
 						listavar[0]='\0';
 					}
 				 } |
-	while_ condicao do_ cmd |
+	while_ {comeco_while = getCaracteresCodigo();} condicao do_ {retorno_while = getCaracteresCodigo();} cmd {escreveNaLinha(retorno_while,"DSVF",getNumLinha(getCaracteresCodigo())+3); fprintf(code_file,"DSVI %d\n",getNumLinha(comeco_while)+1);/*Escreve na linha atual o retorno do while*/}   |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
 
-condicao: expressao relacao expressao | error {yyclearin;} ;
+condicao: expressao relacao expressao {
+											if($2==CPIG) fprintf( code_file, "CPIG\n"); 
+											if($2==CMAI) fprintf( code_file, "CMAI\n"); 
+											if($2==CPMA) fprintf( code_file, "CPMA\n"); 
+											if($2==CDES) fprintf( code_file, "CDES\n"); 
+											if($2==CPMI) fprintf( code_file, "CPMI\n"); 
+											if($2==CPME) fprintf( code_file, "CPME\n"); 
+									   } | error {yyclearin;} ;
 
-relacao: 	operador_comp_igual  |
-			operador_comp_maiorigual |
-			operador_comp_maior  |
-			operador_comp_diff |
-			operador_comp_menorigual |
-			operador_comp_menor
+relacao: 	operador_comp_igual { $$=CPIG; } |
+			operador_comp_maiorigual { $$=CMAI; } |
+			operador_comp_maior { $$=CPMA; } |
+			operador_comp_diff { $$=CDES; } |
+			operador_comp_menorigual { $$=CPMI; } |
+			operador_comp_menor { $$=CPME; }
 			| error { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }; 
 
 expressao: termo outros_termos { 
@@ -505,10 +564,18 @@ expressao: termo outros_termos {
 										$$.type=REAL;
 									} else if ($2.type==INTEGER && $1.type==INTEGER){
 										$$.type=INTEGER;
-									} else {
-										yyerror("Conflicting types, Try to assign a REAL to INTEGER");
-									}
+									} 
 								}
+								if($2.type==INTEGER) fprintf( code_file, "CRCT %d\n",$2.i_value ); 
+								if($2.type==REAL) fprintf( code_file, "CRCT %f\n",$2.f_value); 
+								if(isVarOrConst($2.type))  carregaSimbolo($2.name,contexto,lastprocedure);
+								if($1.type==INTEGER) fprintf( code_file, "CRCT %d\n",$1.i_value ); 
+								if($1.type==REAL) fprintf( code_file, "CRCT %f\n",$1.f_value); 
+								if(isVarOrConst($1.type)) carregaSimbolo($1.name,contexto,lastprocedure);
+								if($2.math_op=='+') fprintf( code_file, "SOMA\n");
+								if($2.math_op=='-') fprintf( code_file, "SUBT\n");
+								if($1.math_op=='*') fprintf( code_file, "MULT\n");
+								if($1.math_op=='/') fprintf( code_file, "DIVI\n");
 							};
 
 op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
@@ -517,19 +584,26 @@ op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
 outros_termos: { $$.type=TNULL; } | op_ad termo outros_termos { 
 																	if($3.type==TNULL){
 																		$$.type = $2.type; 
-																		if($2.type==INTEGER) { $$.i_value=$2.i_value;  fprintf( code_file, "CRCT %d\n",$2.i_value ); }
-																		if($2.type==REAL) { $$.f_value=$2.f_value; fprintf( code_file, "CRCT %f\n",$2.f_value); }
-																		if($2.type==VAR_INT || $2.type==VAR_REAL) { $$.name=$2.name; carregaSimbolo($2.name,contexto,lastprocedure); }
-																		if($1=='+') fprintf( code_file, "SOMA\n");
-																		if($1=='-') fprintf( code_file, "SUBT\n");
+																		if($2.type==INTEGER) { $$.i_value=$2.i_value; }
+																		if($2.type==REAL) { $$.f_value=$2.f_value;}
+																		if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; }
 																	}else{
-																		$$.type=TNULL;
-																		if($2.type==REAL || $3.type==REAL){
+																		if($2.type==REAL || $3.type==REAL || $2.type==VAR_REAL || $2.type==CONST_REAL || $3.type==VAR_REAL || $3.type==CONST_REAL){
 																			$$.type=REAL;
-																		} else if ($2.type==INTEGER || $3.type==INTEGER){
+																		} else {
 																			$$.type=INTEGER;
 																		}
+																		$$.type=TNULL;
+																		if($3.type==INTEGER) fprintf( code_file, "CRCT %d\n",$3.i_value ); 
+																		if($3.type==REAL) fprintf( code_file, "CRCT %f\n",$3.f_value); 
+																		if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
+																		if($2.type==INTEGER) fprintf( code_file, "CRCT %d\n",$2.i_value ); 
+																		if($2.type==REAL) fprintf( code_file, "CRCT %f\n",$2.f_value); 
+																		if(isVarOrConst($2.type)) carregaSimbolo($2.name,contexto,lastprocedure);
+																		if($3.math_op=='+') fprintf( code_file, "SOMA\n");
+																		if($3.math_op=='-') fprintf( code_file, "SUBT\n");
 																	}
+																	$$.math_op=$1;
 																 };
 
 op_ad: 	operador_mat_soma { $$='+'; } |
@@ -538,18 +612,26 @@ op_ad: 	operador_mat_soma { $$='+'; } |
 termo: op_un fator mais_fatores { 
 									if($3.type==TNULL){
 										$$.type = $2.type; 
-										if($1=='0') fprintf( code_file, "CRCT 0\n");
-										if($2.type==INTEGER) { $$.i_value=$2.i_value; fprintf( code_file, "CRCT %d\n",$2.i_value );}
-										if($2.type==REAL) { $$.f_value=$2.f_value; fprintf( code_file, "CRCT %d\n",$2.i_value ); }
-										if($2.type==VAR_INT || $2.type==VAR_REAL) { $$.name=$2.name; carregaSimbolo($2.name,contexto,lastprocedure); }  
-										if($1=='+') fprintf( code_file, "SOMA\n");
-										if($1=='-') fprintf( code_file, "SUBT\n");
+/* 										if($1=='0') fprintf( code_file, "CRCT 0\n"); */
+										if($2.type==INTEGER) $$.i_value=$2.i_value;
+										if($2.type==REAL) $$.f_value=$2.f_value;
+										if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
 									}
 									if($3.type!=TNULL){
 										$$.math_op=$3.math_op;
 										if($3.math_op=='/' && ($3.type==REAL || $2.type==REAL)){
 											yyerror("Division only avaiable between integers");
 										}
+										if($3.type==INTEGER) fprintf( code_file, "CRCT %d\n",$3.i_value ); 
+										if($3.type==REAL) fprintf( code_file, "CRCT %f\n",$3.f_value); 
+										if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
+										$$.type=$2.type;
+										if($2.type==INTEGER) $$.i_value=$2.i_value;
+										if($2.type==REAL) $$.f_value=$2.f_value;
+										if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
+
+/*										if($3.math_op=='*') fprintf( code_file, "MULT\n");
+										if($3.math_op=='/') fprintf( code_file, "DIVI\n");*/
 									}
 								};
 
@@ -557,8 +639,11 @@ mais_fatores: { $$.type=TNULL; } | op_mult fator mais_fatores {
 																	if($3.type==TNULL){
 																		$$.math_op=$1; 
 																		$$.type=$2.type;
+																		if($2.type==INTEGER) $$.i_value=$2.i_value;
+																		if($2.type==REAL) $$.f_value=$2.f_value;
+																		if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
 																	}
-																}	
+																};	
 
 op_mult:  	operador_mat_mult { $$='*'; } | 
 			operador_mat_div { $$='/'; };
@@ -569,7 +654,8 @@ fator: id {
 				sprintf(msg, "Identifier %s not previously declared", $1);
 				yyerror(msg);
 			}else{
-				$$.name=$1; $$.type=ret;
+				$$.name=$1; 
+				$$.type=buscaTipoVarCons($1,contexto, lastprocedure);
 			}
 		  } | numero { $$.type = $1.type; 
 						if($1.type==INTEGER) $$.i_value=$1.i_value; 
@@ -597,8 +683,9 @@ int main (int argc, char *argv[])
 /*  	yydebug = 1;  Utilizado para Degub */
 	alocaTabelaSimbolos();
 	//Inicia escrita do código
-	code_file = fopen("code.p", "w");
+	code_file = fopen("code.p", "w+");
 	fprintf( code_file, "INPP\n" );
+	
 
 	yyparse();
 
@@ -611,6 +698,8 @@ int main (int argc, char *argv[])
 		printf ( "Parse Completed with %d errors\n", numerrors);
 	}
 	printTabela();
+
+
 	return 0;
 }
 

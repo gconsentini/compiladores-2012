@@ -1,31 +1,9 @@
 program prog;
-const c=30.4;
 var a:real;
-var b:real;
-{
-procedure teste(x,y: integer);
-var z:real;
-var w,v:integer;
 begin
-x:=y-2;
-end;
-
-procedure teste2(x,y: integer);
-var z:real;
-var w,v:integer;
-begin
-x:=y-2;
-end;
-}
-begin
-{while a<12 do					
-begin }
-a:=a+1;
-{writeln(c,a);
-readln(a,b);
-a:=c;
-b:=10.4;
-a:=c+a;}
-{end;}
-end.							
+repeat
+a:=12;
+writeln(a);
+until a<12;
+end.
 
