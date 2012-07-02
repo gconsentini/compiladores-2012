@@ -1,8 +1,16 @@
 program prog;
 var x:real;
-procedure nomep(x,y:real);
+procedure nomep(x:integer);
 begin
-	x:=10;
+	x:=15;
+end;
+procedure proc(x:integer);
+begin
+	x:=20;
+end;
+procedure proc4(x:integer);
+begin
+	x:=18;
 end;
 begin
 	x:=10;

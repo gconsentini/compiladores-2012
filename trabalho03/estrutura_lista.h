@@ -73,6 +73,7 @@ int insereConstInt (char *nome, int valor, int contexto);
 int insereConstReal (char *nome, double valor, int contexto);
 int insereProcedure (char *nome, int contexto, int linha);
 int buscaProcedure(int i);
+void atualizaPosicaoProcedure(int i,int posicao);
 int retornaTamanhoTabela();
 int insereProgram (char *nome);
 int busca (char *nome,int tipo,int contexto);

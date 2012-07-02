@@ -65,8 +65,13 @@
 	char listavar[400];
 	char *str;
 	char *cpystr;
-	char *lastprocedure;
+	char lastprocedure[30];
 	char msg[300];
+	char **code_vet; //responsavel pela geração de codigo
+	char *comando;
+	int num_procedimento=0;
+	int prox_linha_vet=0;
+	
 
 	FILE *code_file;
 
@@ -82,6 +87,45 @@
 		int ordem;
 	}simbolo;
 
+	void insereVetor(char *comando, int posicao)
+	{
+		register int i=0;
+		printf("%s ",comando);
+		if(numerrors==0)
+		{
+			for(i=prox_linha_vet; i>posicao; i--)
+			{
+				strcpy(code_vet[i],code_vet[i-1]);
+			}
+			strcpy(code_vet[posicao],comando);
+			prox_linha_vet++;
+		}
+		printf("%s\n",comando);
+	}
+	
+	void gravaVetor()
+	{
+		FILE *p;
+		register int i=0;
+
+		p = fopen("code.p","w");
+		
+		for(i=0; i<prox_linha_vet; i++)
+		{
+			fprintf(p,"%s\n",code_vet[i]);
+		}
+		fclose(p);
+	}
+	
+	void imprimeVetor()
+	{
+		register i=0;
+		for(i=0; i< prox_linha_vet; i++)
+			printf("%s\n",code_vet[i]);
+		fflush(stdout);
+	}
+	
+
 	void carregaSimbolo(char *nome, int contexto, char *procedure){
 		if(numerrors==0){
 			if(contexto==0){
@@ -92,12 +136,15 @@
 				p->procedure=procedure;
 				buscaSimbolo(p);
 				if(p->tipo==CONST_INT){
-					fprintf(code_file, "CRCT %d\n", p->valori);
+					sprintf(comando,"CRCT %d", p->valori);
+					insereVetor(comando,prox_linha_vet);
 				}
 				else if(p->tipo==CONST_REAL){
-					fprintf(code_file, "CRCT %f\n", p->valorf);
+					sprintf(comando,"CRCT %f", p->valorf);
+					insereVetor(comando,prox_linha_vet);
 				}else if(p->tipo==VAR_INT || p->tipo==VAR_REAL){
-					fprintf(code_file, "CRVL %d\n", p->end_relativo);
+					sprintf(comando,"CRVL %d", p->end_relativo);
+					insereVetor(comando,prox_linha_vet);
 				}
 			}
 		}
@@ -111,9 +158,9 @@
 				p->contexto=contexto;
 				p->procedure=procedure;
 				buscaSimbolo(p);
-				printf("Armazena: %s procedure: %s, contexto: %d, tipo: %d\n", p->nome, p->procedure, p->contexto, p->tipo);
 				if(p->tipo==VAR_INT || p->tipo==VAR_REAL){
-					fprintf(code_file, "ARMZ %d\n", p->end_relativo);
+					sprintf(comando,"ARMZ %d", p->end_relativo);
+					insereVetor(comando,prox_linha_vet);
 				}
 			}
 			if(contexto==1){
@@ -123,9 +170,9 @@
 				p->contexto=contexto;
 				p->procedure=procedure;
 				buscaSimbolo(p);
-				printf("Armazena: %s procedure: %s, contexto: %d, tipo: %d\n", p->nome, p->procedure, p->contexto, p->tipo);
 				if(p->tipo==VAR_INT || p->tipo==VAR_REAL || p->tipo==PARAM_INT || p->tipo==PARAM_REAL){
-					fprintf(code_file, "ARMZ %d\n", p->end_relativo);
+					sprintf(comando,"ARMZ %d", p->end_relativo);
+					insereVetor(comando,prox_linha_vet);
 				}
 			}
 		}
@@ -140,9 +187,6 @@
 	int isVarOrConst(int type){
 		if(type==VAR_INT || type==VAR_REAL || type==CONST_INT || type==CONST_REAL) return 1;
 		return 0;
-	}
-	int getCaracteresCodigo(){
-		return ftell(code_file);
 	}
 
 	int getNumLinha(int posicao)
@@ -182,8 +226,8 @@
 		return num_caracter-1;//para tirar o \n inserido no lugar do procedure
 	}
 
-	void escreveNaLinha(int linha_escrita,char *comando, int linha_desvio){
-		char *restoArquivo;
+	void escreveNaLinha(int linha_escrita,char *cmd, int linha_desvio){
+		/*char *restoArquivo;
  		int num_linha = 0;
  		int posicaoFim = ftell(code_file);
 
@@ -196,7 +240,9 @@
 
  		fprintf(code_file,"%s %d\n",comando,linha_desvio);
 		fprintf(code_file,"%s",restoArquivo);
- 		fseek(code_file,0,SEEK_END);
+ 		fseek(code_file,0,SEEK_END);*/
+		sprintf(comando,"%s %d",cmd,linha_desvio);
+		insereVetor(comando,linha_escrita);
  	}
 
 	void escreveProcedimentos(int enderecoPrincipal)
@@ -210,14 +256,12 @@
 			posicao = buscaProcedure(i);
 			if(posicao !=-1)
 			{
-				printf("NUm caracteres %d NUm linha %d",getNumCaracteres(posicao-1),posicao);
-				fseek(code_file,getNumCaracteres(posicao-1),SEEK_SET);
-				fprintf(code_file,"DSVI %d",enderecoPrincipal);
-				
+				sprintf(comando,"DSVI %d",(enderecoPrincipal+num_procedimento));
+				insereVetor(comando,posicao+num_procedimento);		
+				atualizaPosicaoProcedure(i,posicao+num_procedimento);
 			}
 			++i;
 		}
-		fseek(code_file,0,SEEK_END);
 
 	}
 	
@@ -297,15 +341,17 @@
 %nonassoc error
 %% /* Delaração de Regras de gramática do Bison */
 
+//{escreveProcedimentos(prox_linha_vet);
+
 programa: program_ id { insereProgram ($2); } ponto_virgula corpo ponto 
 	  | error id ponto_virgula { yyerror("Expected: program"); yyclearin; } corpo ponto
 	  | error id error { yyerror("Expected: program"); yyclearin; } corpo ponto
 	  | program_ id error { yyerror("Expected: ';' before begin or declaration of variables and constants"); yyclearin; } corpo  ponto
 	  | program_ id { insereProgram ($2); } ponto_virgula corpo error { yyerror("Expected: '.'"); } ;
 
-corpo: dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } begin_ comandos end_
-	| dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
-	| dc {escreveProcedimentos(getNumLinha(ftell(code_file))); } begin_ comandos error { yyerror("Expected: end"); };
+corpo: dc {escreveProcedimentos(prox_linha_vet);} begin_ comandos end_
+	| dc {escreveProcedimentos(prox_linha_vet);}  error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
+	| dc{escreveProcedimentos(prox_linha_vet);}  begin_ comandos error { yyerror("Expected: end"); };
 
 dc: dc_c dc_v dc_p;
 
@@ -381,12 +427,12 @@ variaveis: id mais_var { strcatinv(listavar,$1); strcatinv(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ id { contexto=1; if(insereProcedure ($2,contexto,(getNumLinha(getCaracteresCodigo())+2))!=OK) 
+dc_p: | procedure_ id { ++num_procedimento; contexto=1; if(insereProcedure ($2,contexto,prox_linha_vet)!=OK) {
 											yyerror("Redefinition of procedure"); 
+}
 									 else
 									{
-										fprintf(code_file,"\n");
-										lastprocedure=$2;
+										strcpy(lastprocedure,$2);
 									}
 						} parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2);lastprocedure[0]='\0'; } dc_p;
 
@@ -401,14 +447,18 @@ lista_par: variaveis doispontos tipo_var 	{
 													strcpy(cpystr,str);
 													if($3==INTEGER){ 
 														ret=insereParamInt (cpystr, contexto, lastprocedure, ordem);
-														fprintf( code_file, "COPVL\n" );
+														insereVetor("COPVL",prox_linha_vet);
 													} else if($3==REAL) { 
 														ret=insereParamReal (cpystr, contexto, lastprocedure, ordem);
-														fprintf( code_file, "COPVL\n" );
+														insereVetor("COPVL",prox_linha_vet);
 													} 
 													if(ret == REDECLARACAO_PARAM)
 													{
 														sprintf(msg, "Parameter %s already declared",cpystr );
+														yyerror(msg);
+													}else if(ret == CONFLITO)
+													{
+														sprintf(msg, "Parameter %s already declared as a constant",cpystr );
 														yyerror(msg);
 													}
 													str=strtok(NULL,",");
@@ -430,7 +480,10 @@ argumentos: id { strcatinv(listavar,$1); strcatinv(listavar,","); contparametros
 
 mais_ident: | ponto_virgula argumentos;
 
-pfalse: { escreveNaLinha(retorno_if,"DSVF",getNumLinha(getCaracteresCodigo())+2);  retorno_if = getCaracteresCodigo(); } | else_ { escreveNaLinha(retorno_if,"DSVF",getNumLinha(getCaracteresCodigo())+3);  retorno_if = getCaracteresCodigo(); } cmd  { escreveNaLinha(retorno_if,"DSVI",getNumLinha(getCaracteresCodigo())+2); }; 
+pfalse: { 
+		sprintf(comando,"DSVF %d",prox_linha_vet+2);
+		insereVetor(comando,retorno_if);} 
+| else_ { sprintf(comando,"DSVF %d",prox_linha_vet+2); insereVetor(comando,retorno_if); retorno_if = prox_linha_vet; } cmd  { sprintf(comando,"DSVF %d",prox_linha_vet+2); insereVetor(comando,retorno_if+2);}; 
 
 comandos: | cmd ponto_virgula comandos | error ponto_virgula { yyerror("Command not recognized"); yyclearin; }  comandos;
 
@@ -456,7 +509,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 														yyerror("Conflicting types between 'readln' parameters");
 														break;
 													}else{
-														fprintf(code_file, "LEIT\n" );
+														insereVetor("LEIT",prox_linha_vet);	
 														armazenaSimbolo(str, contexto, lastprocedure);
 													}
 													str=strtok(NULL,",");
@@ -478,7 +531,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 														yyerror("Conflicting types between 'readln' parameters");
 														break;
 													}else{
-														fprintf(code_file, "LEIT\n" );
+														insereVetor("LEIT",prox_linha_vet);
 														armazenaSimbolo(str, contexto, lastprocedure);
 													}
 													str=strtok(NULL,",");
@@ -510,7 +563,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 														break;
 													}else{
 														carregaSimbolo(str, contexto, lastprocedure);
-														fprintf( code_file, "IMPR\n" );
+														insereVetor("IMPR",prox_linha_vet);	
 													}
 													str=strtok(NULL,",");
 												}
@@ -528,7 +581,7 @@ cmd: readln_ abre_par variaveis fecha_par {
 														break;
 													}else{
 														carregaSimbolo(str, contexto, lastprocedure);
-														fprintf( code_file, "IMPR\n" );
+														insereVetor("IMPR",prox_linha_vet);	
 													}
 													str=strtok(NULL,",");
 												}
@@ -538,9 +591,12 @@ cmd: readln_ abre_par variaveis fecha_par {
 											}
 											listavar[0]='\0';	
 										 } |
-	repeat_ { comeco_repeat = getCaracteresCodigo(); } comandos until_ condicao {fprintf(code_file,"DSVF %d\n",getNumLinha(comeco_repeat)+1);} |
-	repeat_ { comeco_repeat = getCaracteresCodigo(); } comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
-	if_ condicao then_ { retorno_if = getCaracteresCodigo(); } cmd pfalse |
+	repeat_ { comeco_repeat = prox_linha_vet; } comandos until_ condicao {
+										sprintf(comando,"DSVF %d",getNumLinha(comeco_repeat)+1);
+										insereVetor(comando,prox_linha_vet);
+										} |
+	repeat_ { comeco_repeat = prox_linha_vet; } comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
+	if_ condicao then_ { retorno_if = prox_linha_vet; } cmd pfalse |
 	id atribuicao expressao { 
 								if(busca($1,ATTR,contexto)==CONST_FALSE){
 									sprintf(msg, "Identifier %s declared as a constant", $1);
@@ -593,18 +649,21 @@ cmd: readln_ abre_par variaveis fecha_par {
 						listavar[0]='\0';
 					}
 				 } |
-	while_ {comeco_while = getCaracteresCodigo();} condicao do_ {retorno_while = getCaracteresCodigo();} cmd {escreveNaLinha(retorno_while,"DSVF",getNumLinha(getCaracteresCodigo())+3); fprintf(code_file,"DSVI %d\n",getNumLinha(comeco_while)+1);/*Escreve na linha atual o retorno do while*/}   |
+	while_ {comeco_while = prox_linha_vet;} condicao do_ {retorno_while = prox_linha_vet;} cmd {escreveNaLinha(retorno_while,"DSVF",getNumLinha(prox_linha_vet)+3);
+										sprintf(comando,"DSVI %d",getNumLinha(comeco_while)+1);
+										insereVetor(comando,prox_linha_vet);/*Escreve na linha atual o retorno do while*/
+									}   |
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
 	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
 
 condicao: expressao relacao expressao {
-											if($2==CPIG) fprintf( code_file, "CPIG\n"); 
-											if($2==CMAI) fprintf( code_file, "CMAI\n"); 
-											if($2==CPMA) fprintf( code_file, "CPMA\n"); 
-											if($2==CDES) fprintf( code_file, "CDES\n"); 
-											if($2==CPMI) fprintf( code_file, "CPMI\n"); 
-											if($2==CPME) fprintf( code_file, "CPME\n"); 
+											if($2==CPIG) insereVetor("CPIG",prox_linha_vet);
+											if($2==CMAI) insereVetor("CMAI",prox_linha_vet);
+											if($2==CPMA) insereVetor("CPMA",prox_linha_vet);
+											if($2==CDES) insereVetor("CDES",prox_linha_vet);
+											if($2==CPMI) insereVetor("CPMI",prox_linha_vet);
+											if($2==CPME) insereVetor("CPME",prox_linha_vet);
 									   } | error {yyclearin;} ;
 
 relacao: 	operador_comp_igual { $$=CPIG; } |
@@ -630,16 +689,32 @@ expressao: termo outros_termos {
 										$$.type=INTEGER;
 									} 
 								}
-								if($2.type==INTEGER) fprintf( code_file, "CRCT %d\n",$2.i_value ); 
-								if($2.type==REAL) fprintf( code_file, "CRCT %f\n",$2.f_value); 
+								if($2.type==INTEGER)
+								{
+									sprintf(comando,"CRCT %d",$2.i_value); 
+									insereVetor(comando,prox_linha_vet);
+								}
+								if($2.type==REAL)
+								{
+									sprintf(comando,"CRCT %f",$2.f_value);
+									insereVetor(comando,prox_linha_vet);
+								}
 								if(isVarOrConst($2.type))  carregaSimbolo($2.name,contexto,lastprocedure);
-								if($1.type==INTEGER) fprintf( code_file, "CRCT %d\n",$1.i_value ); 
-								if($1.type==REAL) fprintf( code_file, "CRCT %f\n",$1.f_value); 
+								if($1.type==INTEGER)
+								{
+									sprintf(comando,"CRCT %d",$1.i_value ); 
+									insereVetor(comando,prox_linha_vet);
+								}
+								if($1.type==REAL)
+								{
+									sprintf(comando,"CRCT %f",$1.f_value);
+									insereVetor(comando,prox_linha_vet);
+								}
 								if(isVarOrConst($1.type)) carregaSimbolo($1.name,contexto,lastprocedure);
-								if($2.math_op=='+') fprintf( code_file, "SOMA\n");
-								if($2.math_op=='-') fprintf( code_file, "SUBT\n");
-								if($1.math_op=='*') fprintf( code_file, "MULT\n");
-								if($1.math_op=='/') fprintf( code_file, "DIVI\n");
+								if($2.math_op=='+') insereVetor("SOMA",prox_linha_vet);
+								if($2.math_op=='-') insereVetor("SUBT",prox_linha_vet);
+								if($1.math_op=='*') insereVetor("MULT",prox_linha_vet);
+								if($1.math_op=='/') insereVetor("DIVI",prox_linha_vet);
 							};
 
 op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
@@ -658,14 +733,30 @@ outros_termos: { $$.type=TNULL; } | op_ad termo outros_termos {
 																			$$.type=INTEGER;
 																		}
 																		$$.type=TNULL;
-																		if($3.type==INTEGER) fprintf( code_file, "CRCT %d\n",$3.i_value ); 
-																		if($3.type==REAL) fprintf( code_file, "CRCT %f\n",$3.f_value); 
+																		if($3.type==INTEGER)
+																		{
+																			sprintf(comando,"CRCT %d",$3.i_value );
+																			insereVetor(comando,prox_linha_vet);
+																		}
+																		if($3.type==REAL)
+																		{
+																			sprintf(comando,"CRCT %f",$3.f_value);
+																			insereVetor(comando,prox_linha_vet);
+																		}
 																		if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
-																		if($2.type==INTEGER) fprintf( code_file, "CRCT %d\n",$2.i_value ); 
-																		if($2.type==REAL) fprintf( code_file, "CRCT %f\n",$2.f_value); 
+																		if($2.type==INTEGER)
+																		{
+																			sprintf(comando,"CRCT %d",$2.i_value );
+																			insereVetor(comando,prox_linha_vet);
+																		}
+																		if($2.type==REAL)
+																		{
+																			sprintf(comando,"CRCT %f",$2.f_value);
+																			insereVetor(comando,prox_linha_vet);
+																		}
 																		if(isVarOrConst($2.type)) carregaSimbolo($2.name,contexto,lastprocedure);
-																		if($3.math_op=='+') fprintf( code_file, "SOMA\n");
-																		if($3.math_op=='-') fprintf( code_file, "SUBT\n");
+																		if($3.math_op=='+') insereVetor("SOMA",prox_linha_vet);
+																		if($3.math_op=='-') insereVetor("SUBT",prox_linha_vet);
 																	}
 																	$$.math_op=$1;
 																 };
@@ -686,8 +777,16 @@ termo: op_un fator mais_fatores {
 										if($3.math_op=='/' && ($3.type==REAL || $2.type==REAL)){
 											yyerror("Division only avaiable between integers");
 										}
-										if($3.type==INTEGER) fprintf( code_file, "CRCT %d\n",$3.i_value ); 
-										if($3.type==REAL) fprintf( code_file, "CRCT %f\n",$3.f_value); 
+										if($3.type==INTEGER)
+										{
+											sprintf(comando,"CRCT %d",$3.i_value );
+											insereVetor(comando,prox_linha_vet);
+										}
+										if($3.type==REAL)
+										{
+											sprintf(comando,"CRCT %f",$3.f_value);
+											insereVetor(comando,prox_linha_vet);
+										}
 										if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
 										$$.type=$2.type;
 										if($2.type==INTEGER) $$.i_value=$2.i_value;
@@ -731,7 +830,7 @@ numero: num_integer { $$.type = INTEGER; $$.i_value = $1; } | num_real { $$.type
 %%
 int AlocaMemoria(){
 	if(numerrors==0){
-		fprintf(code_file, "ALME 1\n");
+		insereVetor("ALME 1",prox_linha_vet);
 	return 1;
 	}
 	return 0;
@@ -748,11 +847,16 @@ int main (int argc, char *argv[])
 	alocaTabelaSimbolos();
 	//Inicia escrita do código
 	code_file = fopen("code.p", "w+");
-	fprintf( code_file, "INPP\n" );
-	
+
+	code_vet =  (char **) malloc(500*sizeof(char *));
+	for(i=0; i<500; i++)
+		code_vet[i] = (char *) malloc(32*sizeof(char));
+	comando =  (char *) malloc(32*sizeof(char));
+	insereVetor("INPP",prox_linha_vet);
 
 	yyparse();
-	fprintf( code_file, "PARA\n" );
+	insereVetor("PARA",prox_linha_vet);
+	gravaVetor();
 	fclose(code_file);
 
 	if(numerrors==0)

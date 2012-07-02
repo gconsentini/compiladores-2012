@@ -40,13 +40,12 @@ int insere (simbolo p)
 	 {
 		 /*se as variaveis tem o mesmo tipo e pertencem ao mesmo escopo. ERRO: redeclaracao de variavel*/
 		 while(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)==0){
-			if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && p.tipo!=PARAM_INT && p.tipo!=PARAM_REAL)
+			if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && (p.tipo!=PARAM_INT || p.tipo!=PARAM_REAL))
 				return REDECLARACAO;
-			else if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && (p.tipo==PARAM_INT || p.tipo!=PARAM_REAL) && strcmp(tabela[i].procedure,p.procedure)==0)
+			else if(tabela[i].contexto == p.contexto && (p.tipo==PARAM_INT || p.tipo==PARAM_REAL) && strcmp(tabela[i].procedure,p.procedure)==0)
 				return REDECLARACAO_PARAM;
-			 
-			 if(tabela[i].tipo != p.tipo && tabela[i].contexto == p.contexto && (tabela[i].tipo == PARAM_REAL || tabela[i].tipo ==PARAM_INT))
-				 return REDECLARACAO_PARAM;
+			else if((tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL) && (p.tipo==PARAM_INT || p.tipo==PARAM_REAL))
+ 				 return CONFLITO;
 			
 			/*se as variaveis nao tem o mesmo tipo, isso so eh permitido se alguma delas for PROGRAM ou PROCEDURE. ERRO: tipos conflitantes*/
 			if(tabela[i].tipo != p.tipo && tabela[i].tipo != PROGRAM && tabela[i].tipo !=PROCEDURE && p.tipo != PROGRAM && p.tipo !=PROCEDURE && tabela[i].contexto == p.contexto)
@@ -224,6 +223,11 @@ int insereProcedure (char *nome, int contexto, int linha)
 	retorno = insere(p);
 	if(retorno ==OK)
 		++numero_simbolos;
+// 	int i;
+// 	for(i=0;i<numero_simbolos; i++){
+// 		printf("|%s|\n",tabela[i].nome);
+// 	}
+// 	
 	return retorno;
 }
 
@@ -234,6 +238,13 @@ int buscaProcedure(int i)
 		else
 			return -1;
 
+}
+
+void atualizaPosicaoProcedure(int posicaoTabela, int novaPosicao)
+{
+	tabela[posicaoTabela].valori = novaPosicao;
+	
+	
 }
 
 int retornaTamanhoTabela()
@@ -371,6 +382,7 @@ void printTabela(){
 	int i;
 	printf("|Nro\tTipo\tNome\t\tValor Int\tValor Float\tEnd Relativo\tContexto\tProcedure\tOrdem\t|\n");
 	for(i=0;i<numero_simbolos; i++){
-		printf("|%d\t%d\t%8s\t%8d\t%lf\t%d\t\t%d\t%16s %8d\t|\n",i,tabela[i].tipo,tabela[i].nome, tabela[i].valori, tabela[i].valorf, tabela[i].end_relativo, tabela[i].contexto,tabela[i].procedure, tabela[i].ordem);
+		printf("|%d\t%d\t%s\t%8d\t%lf\t%d\t\t%d\t%16s %8d\t|\n",i,tabela[i].tipo,tabela[i].nome, tabela[i].valori, tabela[i].valorf, tabela[i].end_relativo, tabela[i].contexto,tabela[i].procedure, tabela[i].ordem);
+
 	}
 }
