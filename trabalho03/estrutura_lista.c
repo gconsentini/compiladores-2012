@@ -70,8 +70,11 @@ int insere (simbolo p)
  				 return CONFLITO;
 			
 			/*se as variaveis nao tem o mesmo tipo, isso so eh permitido se alguma delas for PROGRAM ou PROCEDURE. ERRO: tipos conflitantes*/
-			if(tabela[i].tipo != p.tipo && tabela[i].tipo != PROGRAM && tabela[i].tipo !=PROCEDURE && p.tipo != PROGRAM && p.tipo !=PROCEDURE && tabela[i].contexto == p.contexto)
-				return CONFLITO;
+			if(tabela[i].tipo != p.tipo && tabela[i].tipo != PROGRAM && tabela[i].tipo !=PROCEDURE && p.tipo != PROGRAM && p.tipo !=PROCEDURE && tabela[i].contexto == p.contexto){
+				if(strcmp(tabela[i].procedure,p.procedure)==0){
+					return CONFLITO;
+				}
+			}
 			
 			i++;
 		 }

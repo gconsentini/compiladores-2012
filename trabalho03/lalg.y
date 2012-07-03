@@ -713,124 +713,78 @@ expressao: termo outros_termos {
 										$$.type=INTEGER;
 									} 
 								}
-								if($2.type==INTEGER)
-								{
-									sprintf(comando,"CRCT %d",$2.i_value); 
-									insereVetor(comando,prox_linha_vet);
-								}
-								if($2.type==REAL)
-								{
-									sprintf(comando,"CRCT %f",$2.f_value);
-									insereVetor(comando,prox_linha_vet);
-								}
-								if(isVarOrConst($2.type))  carregaSimbolo($2.name,contexto,lastprocedure);
-								if($1.type==INTEGER)
-								{
-									sprintf(comando,"CRCT %d",$1.i_value ); 
-									insereVetor(comando,prox_linha_vet);
-								}
-								if($1.type==REAL)
-								{
-									sprintf(comando,"CRCT %f",$1.f_value);
-									insereVetor(comando,prox_linha_vet);
-								}
-								if(isVarOrConst($1.type)) carregaSimbolo($1.name,contexto,lastprocedure);
-								if($2.math_op=='+') insereVetor("SOMA",prox_linha_vet);
-								if($2.math_op=='-') insereVetor("SUBT",prox_linha_vet);
-								if($1.math_op=='*') insereVetor("MULT",prox_linha_vet);
-								if($1.math_op=='/') insereVetor("DIVI",prox_linha_vet);
 							};
 
 op_un: { $$='0'; } | operador_mat_soma { $$='+'; } |
 		operador_mat_sub { $$='-'; } ;
 
 outros_termos: { $$.type=TNULL; } | op_ad termo outros_termos { 
-																	if($3.type==TNULL){
-																		$$.type = $2.type; 
-																		if($2.type==INTEGER) { $$.i_value=$2.i_value; }
-																		if($2.type==REAL) { $$.f_value=$2.f_value;}
-																		if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; }
-																	}else{
-																		if($2.type==REAL || $3.type==REAL || $2.type==VAR_REAL || $2.type==CONST_REAL || $3.type==VAR_REAL || $3.type==CONST_REAL){
-																			$$.type=REAL;
-																		} else {
-																			$$.type=INTEGER;
-																		}
-																		$$.type=TNULL;
-																		if($3.type==INTEGER)
-																		{
-																			sprintf(comando,"CRCT %d",$3.i_value );
-																			insereVetor(comando,prox_linha_vet);
-																		}
-																		if($3.type==REAL)
-																		{
-																			sprintf(comando,"CRCT %f",$3.f_value);
-																			insereVetor(comando,prox_linha_vet);
-																		}
-																		if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
-																		if($2.type==INTEGER)
-																		{
-																			sprintf(comando,"CRCT %d",$2.i_value );
-																			insereVetor(comando,prox_linha_vet);
-																		}
-																		if($2.type==REAL)
-																		{
-																			sprintf(comando,"CRCT %f",$2.f_value);
-																			insereVetor(comando,prox_linha_vet);
-																		}
-																		if(isVarOrConst($2.type)) carregaSimbolo($2.name,contexto,lastprocedure);
-																		if($3.math_op=='+') insereVetor("SOMA",prox_linha_vet);
-																		if($3.math_op=='-') insereVetor("SUBT",prox_linha_vet);
-																	}
-																	$$.math_op=$1;
-																 };
+								      if($3.type==TNULL){
+									      $$.type = $2.type; 
+								      }else{
+									      if($2.type==REAL || $3.type==REAL || $2.type==VAR_REAL || $2.type==CONST_REAL || $3.type==VAR_REAL || $3.type==CONST_REAL){
+										      $$.type=REAL;
+									      } else {
+										      $$.type=INTEGER;
+									      }
+									      
+								      }
+								      if($1=='+') insereVetor("SOMA",prox_linha_vet);
+								      if($1=='-') insereVetor("SUBT",prox_linha_vet);
+								      $$.math_op=$1;
+								};
 
 op_ad: 	operador_mat_soma { $$='+'; } |
 		operador_mat_sub { $$='-'; };
 
-termo: op_un fator mais_fatores { 
-									if($3.type==TNULL){
-										$$.type = $2.type; 
-/* 										if($1=='0') fprintf( code_file, "CRCT 0\n"); */
-										if($2.type==INTEGER) $$.i_value=$2.i_value;
-										if($2.type==REAL) $$.f_value=$2.f_value;
-										if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
-									}
-									if($3.type!=TNULL){
-										$$.math_op=$3.math_op;
-										if($3.math_op=='/' && ($3.type==REAL || $2.type==REAL)){
-											yyerror("Division only avaiable between integers");
-										}
-										if($3.type==INTEGER)
-										{
-											sprintf(comando,"CRCT %d",$3.i_value );
-											insereVetor(comando,prox_linha_vet);
-										}
-										if($3.type==REAL)
-										{
-											sprintf(comando,"CRCT %f",$3.f_value);
-											insereVetor(comando,prox_linha_vet);
-										}
-										if(isVarOrConst($3.type)) { carregaSimbolo($3.name,contexto,lastprocedure); }
+termo: op_un fator { 
+		      if($2.type==INTEGER)
+		      {
+			      sprintf(comando,"CRCT %d",$2.i_value );
+			      insereVetor(comando,prox_linha_vet);
+		      }
+		      if($2.type==REAL)
+		      {
+			      sprintf(comando,"CRCT %f",$2.f_value);
+			      insereVetor(comando,prox_linha_vet);
+		      }
+		      if(isVarOrConst($2.type)) carregaSimbolo($2.name,contexto,lastprocedure);
+		    } mais_fatores { 
+				    if($4.type==TNULL){
+					    $$.type = $2.type;
+				    }
+				    if($4.type!=TNULL){
+					    if($4.math_op=='/' && ($4.type==REAL || $2.type==REAL)){
+						    yyerror("Division only avaiable between integers");
+					    }
+					    $$.type=$2.type;
+				    }
+		    };
+
+mais_fatores: { $$.type=TNULL; } | op_mult fator { 
+						      if($2.type==INTEGER)
+						      {
+							      sprintf(comando,"CRCT %d",$2.i_value );
+							      insereVetor(comando,prox_linha_vet);
+						      }
+						      if($2.type==REAL)
+						      {
+							      sprintf(comando,"CRCT %f",$2.f_value);
+							      insereVetor(comando,prox_linha_vet);
+						      } 
+						      if(isVarOrConst($2.type)) carregaSimbolo($2.name,contexto,lastprocedure);
+						    } mais_fatores { 
+									$$.type=$2.type;
+									if($4.type!=TNULL){
+										$$.type=$4.type;
+									} 
+									if($2.type==REAL || $2.type==INTEGER){
 										$$.type=$2.type;
-										if($2.type==INTEGER) $$.i_value=$2.i_value;
-										if($2.type==REAL) $$.f_value=$2.f_value;
-										if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
-
-/*										if($3.math_op=='*') fprintf( code_file, "MULT\n");
-										if($3.math_op=='/') fprintf( code_file, "DIVI\n");*/
 									}
-								};
-
-mais_fatores: { $$.type=TNULL; } | op_mult fator mais_fatores { 
-																	if($3.type==TNULL){
-																		$$.math_op=$1; 
-																		$$.type=$2.type;
-																		if($2.type==INTEGER) $$.i_value=$2.i_value;
-																		if($2.type==REAL) $$.f_value=$2.f_value;
-																		if(isVarOrConst($2.type)) { $$.name=$2.name; $$.type=$2.type; } 
-																	}
-																};	
+									$$.math_op=$1;
+									if($1=='*') insereVetor("MULT",prox_linha_vet);
+								        if($1=='/') insereVetor("DIVI",prox_linha_vet);
+						   };	
 
 op_mult:  	operador_mat_mult { $$='*'; } | 
 			operador_mat_div { $$='/'; };

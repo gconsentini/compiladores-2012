@@ -1,15 +1,15 @@
 program prog;
 var b:integer;
-var c:integer;
+var c:real;
 procedure nomep(x:integer);
 begin
 	x:=15;
 end;
 procedure proc(x:integer);
 begin
-	x:=20;
+	x:=20+10-13*3+12*5;
 end;
-procedure proc4(x:integer);
+procedure proc4(x:real);
 begin
 	x:=18;
 end;
@@ -22,7 +22,7 @@ begin
 			c:=0;
 		end;
 		b:=1;
-		c:=2;
+		c:=2*3.3+12+5/4+3.5;
 	end;
 	proc4(c);
 	repeat
