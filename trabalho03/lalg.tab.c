@@ -139,6 +139,7 @@
 	char *comando;
 	int num_procedimento=0;
 	int prox_linha_vet=0;
+	int posicaoPusher=0;
 	
 
 	FILE *code_file;
@@ -315,21 +316,20 @@
 
 	void escreveProcedimentos(int enderecoPrincipal)
 	{
-		int i=0;
-		int tamanho = retornaTamanhoTabela();
-		int posicao;
-		
-		while(i<tamanho)
-		{
-			posicao = buscaProcedure(i);
-			if(posicao !=-1)
-			{
-				sprintf(comando,"DSVI %d",(enderecoPrincipal+num_procedimento));
-				insereVetor(comando,posicao+num_procedimento);		
-				atualizaPosicaoProcedure(i,posicao+num_procedimento);
-			}
-			++i;
-		}
+ 		int i=0;
+ 		int tamanho = retornaTamanhoTabela();
+ 		int posicao;
+ 		
+ 		while(i<tamanho)
+ 		{
+ 			posicao = buscaProcedure(i);
+ 			if(posicao !=-1)
+ 			{
+				sprintf(comando,"DSVI %d",enderecoPrincipal);
+ 				strcpy(code_vet[posicao-1],comando);
+ 			}
+ 			++i;
+ 		}
 
 	}
 	
@@ -783,14 +783,14 @@ static const yytype_uint16 yyrline[] =
      350,   350,   352,   352,   353,   353,   353,   354,   354,   356,
      358,   358,   377,   377,   378,   378,   380,   380,   380,   419,
      419,   420,   420,   421,   421,   423,   423,   424,   426,   428,
-     428,   430,   430,   437,   430,   439,   439,   441,   441,   469,
-     469,   471,   471,   473,   475,   477,   477,   479,   479,   481,
-     481,   483,   486,   486,   488,   488,   488,   488,   490,   548,
-     594,   594,   598,   598,   599,   599,   600,   616,   616,   652,
-     652,   652,   656,   656,   657,   657,   658,   660,   667,   669,
-     670,   671,   672,   673,   674,   675,   677,   720,   720,   721,
-     723,   723,   764,   765,   767,   801,   801,   811,   812,   814,
-     823,   826,   828,   828,   828
+     428,   430,   430,   438,   430,   441,   441,   443,   443,   471,
+     471,   473,   473,   475,   477,   479,   479,   481,   481,   483,
+     483,   485,   488,   488,   490,   490,   490,   490,   492,   550,
+     596,   596,   600,   600,   601,   601,   602,   618,   618,   666,
+     666,   666,   670,   670,   671,   671,   672,   674,   681,   683,
+     684,   685,   686,   687,   688,   689,   691,   734,   734,   735,
+     737,   737,   778,   779,   781,   815,   815,   825,   826,   828,
+     837,   840,   842,   842,   842
 };
 #endif
 
@@ -2080,9 +2080,10 @@ yyreduce:
 
 /* Line 1806 of yacc.c  */
 #line 430 "lalg.y"
-    { ++num_procedimento; contexto=1; if(insereProcedure ((yyvsp[(2) - (2)].name),contexto,prox_linha_vet)!=OK) {
+    { ++num_procedimento; insereVetor("DSVI",prox_linha_vet); atualizaPosicaoProcedure((yyvsp[(2) - (2)].name),prox_linha_vet); contexto=1; if(insereProcedure ((yyvsp[(2) - (2)].name),contexto,prox_linha_vet)!=OK) 
+										{
 											yyerror("Redefinition of procedure"); 
-}
+										}
 									 else
 									{
 										strcpy(lastprocedure,(yyvsp[(2) - (2)].name));
@@ -2093,14 +2094,15 @@ yyreduce:
   case 43:
 
 /* Line 1806 of yacc.c  */
-#line 437 "lalg.y"
-    { contexto=0;removeLocalVars((yyvsp[(2) - (6)].name));lastprocedure[0]='\0'; }
+#line 438 "lalg.y"
+    { contexto=0;removeLocalVars((yyvsp[(2) - (6)].name));lastprocedure[0]='\0';	insereVetor("RTPR",prox_linha_vet);
+														   }
     break;
 
   case 47:
 
 /* Line 1806 of yacc.c  */
-#line 441 "lalg.y"
+#line 443 "lalg.y"
     {	
 												str=malloc(400 * sizeof(char));
 												str=strtok(listavar,",");
@@ -2108,7 +2110,7 @@ yyreduce:
 												while(str!=NULL){
 													cpystr=malloc(400 * sizeof(char));
 													strcpy(cpystr,str);
-													if((yyvsp[(3) - (3)].i_number)==INTEGER){ 
+													if((yyvsp[(3) - (3)].i_number)==INTEGER){
 														ret=insereParamInt (cpystr, contexto, lastprocedure, ordem);
 														insereVetor("COPVL",prox_linha_vet);
 													} else if((yyvsp[(3) - (3)].i_number)==REAL) { 
@@ -2135,21 +2137,21 @@ yyreduce:
   case 49:
 
 /* Line 1806 of yacc.c  */
-#line 469 "lalg.y"
+#line 471 "lalg.y"
     { yyerror("Expected: ':'"); yyclearin; }
     break;
 
   case 57:
 
 /* Line 1806 of yacc.c  */
-#line 479 "lalg.y"
+#line 481 "lalg.y"
     { strcatinv(listavar,(yyvsp[(1) - (1)].name)); strcatinv(listavar,","); contparametros++; }
     break;
 
   case 61:
 
 /* Line 1806 of yacc.c  */
-#line 483 "lalg.y"
+#line 485 "lalg.y"
     { 
 		sprintf(comando,"DSVF %d",prox_linha_vet+2);
 		insereVetor(comando,retorno_if);}
@@ -2158,28 +2160,28 @@ yyreduce:
   case 62:
 
 /* Line 1806 of yacc.c  */
-#line 486 "lalg.y"
+#line 488 "lalg.y"
     { sprintf(comando,"DSVF %d",prox_linha_vet+2); insereVetor(comando,retorno_if); retorno_if = prox_linha_vet; }
     break;
 
   case 63:
 
 /* Line 1806 of yacc.c  */
-#line 486 "lalg.y"
+#line 488 "lalg.y"
     { sprintf(comando,"DSVF %d",prox_linha_vet+2); insereVetor(comando,retorno_if+2);}
     break;
 
   case 66:
 
 /* Line 1806 of yacc.c  */
-#line 488 "lalg.y"
+#line 490 "lalg.y"
     { yyerror("Command not recognized"); yyclearin; }
     break;
 
   case 68:
 
 /* Line 1806 of yacc.c  */
-#line 490 "lalg.y"
+#line 492 "lalg.y"
     {
 											str=malloc(400 * sizeof(char));
 											str=strtok(listavar,",");
@@ -2243,7 +2245,7 @@ yyreduce:
   case 69:
 
 /* Line 1806 of yacc.c  */
-#line 548 "lalg.y"
+#line 550 "lalg.y"
     {
 											str=malloc(400 * sizeof(char));
 											str=strtok(listavar,",");
@@ -2295,14 +2297,14 @@ yyreduce:
   case 70:
 
 /* Line 1806 of yacc.c  */
-#line 594 "lalg.y"
+#line 596 "lalg.y"
     { comeco_repeat = prox_linha_vet; }
     break;
 
   case 71:
 
 /* Line 1806 of yacc.c  */
-#line 594 "lalg.y"
+#line 596 "lalg.y"
     {
 										sprintf(comando,"DSVF %d",getNumLinha(comeco_repeat)+1);
 										insereVetor(comando,prox_linha_vet);
@@ -2312,28 +2314,28 @@ yyreduce:
   case 72:
 
 /* Line 1806 of yacc.c  */
-#line 598 "lalg.y"
+#line 600 "lalg.y"
     { comeco_repeat = prox_linha_vet; }
     break;
 
   case 73:
 
 /* Line 1806 of yacc.c  */
-#line 598 "lalg.y"
+#line 600 "lalg.y"
     { yyerror("Expected: 'until'"); yyclearin; }
     break;
 
   case 74:
 
 /* Line 1806 of yacc.c  */
-#line 599 "lalg.y"
+#line 601 "lalg.y"
     { retorno_if = prox_linha_vet; }
     break;
 
   case 76:
 
 /* Line 1806 of yacc.c  */
-#line 600 "lalg.y"
+#line 602 "lalg.y"
     { 
 								if(busca((yyvsp[(1) - (3)].name),ATTR,contexto)==CONST_FALSE){
 									sprintf(msg, "Identifier %s declared as a constant", (yyvsp[(1) - (3)].name));
@@ -2355,15 +2357,15 @@ yyreduce:
   case 77:
 
 /* Line 1806 of yacc.c  */
-#line 616 "lalg.y"
+#line 618 "lalg.y"
     { contparametros=0; }
     break;
 
   case 78:
 
 /* Line 1806 of yacc.c  */
-#line 616 "lalg.y"
-    {
+#line 619 "lalg.y"
+    {   
 					ret=busca((yyvsp[(1) - (3)].name),PROCEDURE,contexto);//retorna o numero de parametros se declarado
 					if(ret==NAO_EXISTE){
 						sprintf(msg, "Procedure %s not previously declared", (yyvsp[(1) - (3)].name));
@@ -2379,7 +2381,12 @@ yyreduce:
 							yyerror(msg);
 						}else{
 							int retvar,retparam,argpos=1;
+							posicaoPusher = prox_linha_vet;
+							insereVetor("PUSHER",prox_linha_vet);
 							while(str!=NULL){
+								int endereco = buscaEndRelativoVar(str, contexto, (yyvsp[(1) - (3)].name));
+								sprintf(comando,"PARAM %d",endereco);
+								insereVetor(comando,prox_linha_vet);
 								cpystr=malloc(400 * sizeof(char));
 								strcpy(cpystr,str);
 								retvar=busca(str,ATTR,contexto);
@@ -2387,6 +2394,12 @@ yyreduce:
 									sprintf(msg, "Identifier %s not previously declared", (yyvsp[(1) - (3)].name));
 									yyerror(msg);
 								}
+								endereco = getPosicaoProcedure((yyvsp[(1) - (3)].name));
+								sprintf(comando,"CHPR %d",(endereco));
+								insereVetor(comando,prox_linha_vet);
+								sprintf(comando,"PUSHER %d",prox_linha_vet);
+								strcpy(code_vet[posicaoPusher],comando);
+
 								retparam=buscaTipoParam((yyvsp[(1) - (3)].name),argpos);
 								if(retvar==REAL && retparam==INTEGER){
 									sprintf(msg, "Conflicting types,try to assign a REAL to expected INTEGER parameter %d in procedure %s", argpos, (yyvsp[(1) - (3)].name));
@@ -2404,21 +2417,21 @@ yyreduce:
   case 79:
 
 /* Line 1806 of yacc.c  */
-#line 652 "lalg.y"
+#line 666 "lalg.y"
     {comeco_while = prox_linha_vet;}
     break;
 
   case 80:
 
 /* Line 1806 of yacc.c  */
-#line 652 "lalg.y"
+#line 666 "lalg.y"
     {retorno_while = prox_linha_vet;}
     break;
 
   case 81:
 
 /* Line 1806 of yacc.c  */
-#line 652 "lalg.y"
+#line 666 "lalg.y"
     {escreveNaLinha(retorno_while,"DSVF",getNumLinha(prox_linha_vet)+3);
 										sprintf(comando,"DSVI %d",getNumLinha(comeco_while)+1);
 										insereVetor(comando,prox_linha_vet);/*Escreve na linha atual o retorno do while*/
@@ -2428,21 +2441,21 @@ yyreduce:
   case 82:
 
 /* Line 1806 of yacc.c  */
-#line 656 "lalg.y"
+#line 670 "lalg.y"
     { yyerror("Expected: 'then'"); yyclearin; }
     break;
 
   case 84:
 
 /* Line 1806 of yacc.c  */
-#line 657 "lalg.y"
+#line 671 "lalg.y"
     { yyerror("Expected: 'do'"); yyclearin; }
     break;
 
   case 87:
 
 /* Line 1806 of yacc.c  */
-#line 660 "lalg.y"
+#line 674 "lalg.y"
     {
 											if((yyvsp[(2) - (3)].i_number)==CPIG) insereVetor("CPIG",prox_linha_vet);
 											if((yyvsp[(2) - (3)].i_number)==CMAI) insereVetor("CMAI",prox_linha_vet);
@@ -2456,63 +2469,63 @@ yyreduce:
   case 88:
 
 /* Line 1806 of yacc.c  */
-#line 667 "lalg.y"
+#line 681 "lalg.y"
     {yyclearin;}
     break;
 
   case 89:
 
 /* Line 1806 of yacc.c  */
-#line 669 "lalg.y"
+#line 683 "lalg.y"
     { (yyval.i_number)=CPIG; }
     break;
 
   case 90:
 
 /* Line 1806 of yacc.c  */
-#line 670 "lalg.y"
+#line 684 "lalg.y"
     { (yyval.i_number)=CMAI; }
     break;
 
   case 91:
 
 /* Line 1806 of yacc.c  */
-#line 671 "lalg.y"
+#line 685 "lalg.y"
     { (yyval.i_number)=CPMA; }
     break;
 
   case 92:
 
 /* Line 1806 of yacc.c  */
-#line 672 "lalg.y"
+#line 686 "lalg.y"
     { (yyval.i_number)=CDES; }
     break;
 
   case 93:
 
 /* Line 1806 of yacc.c  */
-#line 673 "lalg.y"
+#line 687 "lalg.y"
     { (yyval.i_number)=CPMI; }
     break;
 
   case 94:
 
 /* Line 1806 of yacc.c  */
-#line 674 "lalg.y"
+#line 688 "lalg.y"
     { (yyval.i_number)=CPME; }
     break;
 
   case 95:
 
 /* Line 1806 of yacc.c  */
-#line 675 "lalg.y"
+#line 689 "lalg.y"
     { yyerror("Expected any operator: '=', '>', '<', '>=', '<=', '<>' "); yyclearin; }
     break;
 
   case 96:
 
 /* Line 1806 of yacc.c  */
-#line 677 "lalg.y"
+#line 691 "lalg.y"
     { 
 								if((yyvsp[(2) - (2)].symbol).type==TNULL){
 									(yyval.symbol).type = (yyvsp[(1) - (2)].symbol).type; 
@@ -2560,35 +2573,35 @@ yyreduce:
   case 97:
 
 /* Line 1806 of yacc.c  */
-#line 720 "lalg.y"
+#line 734 "lalg.y"
     { (yyval.math_op)='0'; }
     break;
 
   case 98:
 
 /* Line 1806 of yacc.c  */
-#line 720 "lalg.y"
+#line 734 "lalg.y"
     { (yyval.math_op)='+'; }
     break;
 
   case 99:
 
 /* Line 1806 of yacc.c  */
-#line 721 "lalg.y"
+#line 735 "lalg.y"
     { (yyval.math_op)='-'; }
     break;
 
   case 100:
 
 /* Line 1806 of yacc.c  */
-#line 723 "lalg.y"
+#line 737 "lalg.y"
     { (yyval.symbol).type=TNULL; }
     break;
 
   case 101:
 
 /* Line 1806 of yacc.c  */
-#line 723 "lalg.y"
+#line 737 "lalg.y"
     { 
 																	if((yyvsp[(3) - (3)].symbol).type==TNULL){
 																		(yyval.symbol).type = (yyvsp[(2) - (3)].symbol).type; 
@@ -2634,21 +2647,21 @@ yyreduce:
   case 102:
 
 /* Line 1806 of yacc.c  */
-#line 764 "lalg.y"
+#line 778 "lalg.y"
     { (yyval.math_op)='+'; }
     break;
 
   case 103:
 
 /* Line 1806 of yacc.c  */
-#line 765 "lalg.y"
+#line 779 "lalg.y"
     { (yyval.math_op)='-'; }
     break;
 
   case 104:
 
 /* Line 1806 of yacc.c  */
-#line 767 "lalg.y"
+#line 781 "lalg.y"
     { 
 									if((yyvsp[(3) - (3)].symbol).type==TNULL){
 										(yyval.symbol).type = (yyvsp[(2) - (3)].symbol).type; 
@@ -2687,14 +2700,14 @@ yyreduce:
   case 105:
 
 /* Line 1806 of yacc.c  */
-#line 801 "lalg.y"
+#line 815 "lalg.y"
     { (yyval.symbol).type=TNULL; }
     break;
 
   case 106:
 
 /* Line 1806 of yacc.c  */
-#line 801 "lalg.y"
+#line 815 "lalg.y"
     { 
 																	if((yyvsp[(3) - (3)].symbol).type==TNULL){
 																		(yyval.symbol).math_op=(yyvsp[(1) - (3)].math_op); 
@@ -2709,21 +2722,21 @@ yyreduce:
   case 107:
 
 /* Line 1806 of yacc.c  */
-#line 811 "lalg.y"
+#line 825 "lalg.y"
     { (yyval.math_op)='*'; }
     break;
 
   case 108:
 
 /* Line 1806 of yacc.c  */
-#line 812 "lalg.y"
+#line 826 "lalg.y"
     { (yyval.math_op)='/'; }
     break;
 
   case 109:
 
 /* Line 1806 of yacc.c  */
-#line 814 "lalg.y"
+#line 828 "lalg.y"
     { 
 			ret=busca((yyvsp[(1) - (1)].name),EXPRESSAO,contexto);
 			if(ret==NAO_EXISTE){
@@ -2739,7 +2752,7 @@ yyreduce:
   case 110:
 
 /* Line 1806 of yacc.c  */
-#line 823 "lalg.y"
+#line 837 "lalg.y"
     { (yyval.symbol).type = (yyvsp[(1) - (1)].symbol).type; 
 						if((yyvsp[(1) - (1)].symbol).type==INTEGER) (yyval.symbol).i_value=(yyvsp[(1) - (1)].symbol).i_value; 
 						if((yyvsp[(1) - (1)].symbol).type==REAL) (yyval.symbol).f_value=(yyvsp[(1) - (1)].symbol).f_value;  
@@ -2749,28 +2762,28 @@ yyreduce:
   case 112:
 
 /* Line 1806 of yacc.c  */
-#line 828 "lalg.y"
+#line 842 "lalg.y"
     { (yyval.symbol).type = INTEGER; (yyval.symbol).i_value = (yyvsp[(1) - (1)].i_number); }
     break;
 
   case 113:
 
 /* Line 1806 of yacc.c  */
-#line 828 "lalg.y"
+#line 842 "lalg.y"
     { (yyval.symbol).type = REAL; (yyval.symbol).f_value = (yyvsp[(1) - (1)].r_number); }
     break;
 
   case 114:
 
 /* Line 1806 of yacc.c  */
-#line 828 "lalg.y"
+#line 842 "lalg.y"
     { yyerror("Expected a number"); yyclearin; }
     break;
 
 
 
 /* Line 1806 of yacc.c  */
-#line 2774 "lalg.tab.c"
+#line 2787 "lalg.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3001,7 +3014,7 @@ yyreturn:
 
 
 /* Line 2067 of yacc.c  */
-#line 830 "lalg.y"
+#line 844 "lalg.y"
 
 int AlocaMemoria(){
 	if(numerrors==0){

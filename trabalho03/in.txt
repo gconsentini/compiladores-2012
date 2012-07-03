@@ -1,5 +1,6 @@
 program prog;
-var x:real;
+var b:integer;
+var c:integer;
 procedure nomep(x:integer);
 begin
 	x:=15;
@@ -13,6 +14,7 @@ begin
 	x:=18;
 end;
 begin
-	x:=10;
+	proc4(b);
+	proc4(c);
 end.
 

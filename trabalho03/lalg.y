@@ -71,6 +71,7 @@
 	char *comando;
 	int num_procedimento=0;
 	int prox_linha_vet=0;
+	int posicaoPusher=0;
 	
 
 	FILE *code_file;
@@ -247,21 +248,20 @@
 
 	void escreveProcedimentos(int enderecoPrincipal)
 	{
-		int i=0;
-		int tamanho = retornaTamanhoTabela();
-		int posicao;
-		
-		while(i<tamanho)
-		{
-			posicao = buscaProcedure(i);
-			if(posicao !=-1)
-			{
-				sprintf(comando,"DSVI %d",(enderecoPrincipal+num_procedimento));
-				insereVetor(comando,posicao+num_procedimento);		
-				atualizaPosicaoProcedure(i,posicao+num_procedimento);
-			}
-			++i;
-		}
+ 		int i=0;
+ 		int tamanho = retornaTamanhoTabela();
+ 		int posicao;
+ 		
+ 		while(i<tamanho)
+ 		{
+ 			posicao = buscaProcedure(i);
+ 			if(posicao !=-1)
+ 			{
+				sprintf(comando,"DSVI %d",enderecoPrincipal);
+ 				strcpy(code_vet[posicao-1],comando);
+ 			}
+ 			++i;
+ 		}
 
 	}
 	
@@ -351,7 +351,7 @@ programa: program_ id { insereProgram ($2); } ponto_virgula corpo ponto
 
 corpo: dc {escreveProcedimentos(prox_linha_vet);} begin_ comandos end_
 	| dc {escreveProcedimentos(prox_linha_vet);}  error { yyerror("Expected: begin or declaration of variables and constants");yyclearin; } comandos end_
-	| dc{escreveProcedimentos(prox_linha_vet);}  begin_ comandos error { yyerror("Expected: end"); };
+	| dc {escreveProcedimentos(prox_linha_vet);}  begin_ comandos error { yyerror("Expected: end"); };
 
 dc: dc_c dc_v dc_p;
 
@@ -427,14 +427,16 @@ variaveis: id mais_var { strcatinv(listavar,$1); strcatinv(listavar,","); };
 
 mais_var: | virgula variaveis;
 
-dc_p: | procedure_ id { ++num_procedimento; contexto=1; if(insereProcedure ($2,contexto,prox_linha_vet)!=OK) {
+dc_p: | procedure_ id { ++num_procedimento; insereVetor("DSVI",prox_linha_vet); atualizaPosicaoProcedure($2,prox_linha_vet); contexto=1; if(insereProcedure ($2,contexto,prox_linha_vet)!=OK) 
+										{
 											yyerror("Redefinition of procedure"); 
-}
+										}
 									 else
 									{
 										strcpy(lastprocedure,$2);
 									}
-						} parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2);lastprocedure[0]='\0'; } dc_p;
+						} parametros ponto_virgula corpo_p { contexto=0;removeLocalVars($2);lastprocedure[0]='\0';	insereVetor("RTPR",prox_linha_vet);
+														   } dc_p;
 
 parametros: | abre_par lista_par fecha_par;
 
@@ -445,7 +447,7 @@ lista_par: variaveis doispontos tipo_var 	{
 												while(str!=NULL){
 													cpystr=malloc(400 * sizeof(char));
 													strcpy(cpystr,str);
-													if($3==INTEGER){ 
+													if($3==INTEGER){
 														ret=insereParamInt (cpystr, contexto, lastprocedure, ordem);
 														insereVetor("COPVL",prox_linha_vet);
 													} else if($3==REAL) { 
@@ -613,7 +615,8 @@ cmd: readln_ abre_par variaveis fecha_par {
 								}
 								armazenaSimbolo($1,contexto,lastprocedure);
 							  } |
-	id { contparametros=0; } lista_arg {
+	id { contparametros=0; } lista_arg 
+				{   
 					ret=busca($1,PROCEDURE,contexto);//retorna o numero de parametros se declarado
 					if(ret==NAO_EXISTE){
 						sprintf(msg, "Procedure %s not previously declared", $1);
@@ -629,7 +632,12 @@ cmd: readln_ abre_par variaveis fecha_par {
 							yyerror(msg);
 						}else{
 							int retvar,retparam,argpos=1;
+							posicaoPusher = prox_linha_vet;
+							insereVetor("PUSHER",prox_linha_vet);
 							while(str!=NULL){
+								int endereco = buscaEndRelativoVar(str, contexto, $1);
+								sprintf(comando,"PARAM %d",endereco);
+								insereVetor(comando,prox_linha_vet);
 								cpystr=malloc(400 * sizeof(char));
 								strcpy(cpystr,str);
 								retvar=busca(str,ATTR,contexto);
@@ -637,6 +645,12 @@ cmd: readln_ abre_par variaveis fecha_par {
 									sprintf(msg, "Identifier %s not previously declared", $1);
 									yyerror(msg);
 								}
+								endereco = getPosicaoProcedure($1);
+								sprintf(comando,"CHPR %d",(endereco));
+								insereVetor(comando,prox_linha_vet);
+								sprintf(comando,"PUSHER %d",prox_linha_vet);
+								strcpy(code_vet[posicaoPusher],comando);
+
 								retparam=buscaTipoParam($1,argpos);
 								if(retvar==REAL && retparam==INTEGER){
 									sprintf(msg, "Conflicting types,try to assign a REAL to expected INTEGER parameter %d in procedure %s", argpos, $1);

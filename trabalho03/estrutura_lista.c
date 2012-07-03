@@ -11,6 +11,28 @@ int getEndRelativo()
 	return ret;
 }
 
+
+int buscaEndRelativoVar(char *nome,int contexto, char *procedure)
+{
+	int i=0;
+	while(i<numero_simbolos){
+		if(strcmp(tabela[i].nome,nome)==0 && (tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL)){
+			if(contexto==0){
+				return tabela[i].end_relativo;
+			}else{
+				if(strcmp(tabela[i].procedure,procedure)==0){
+					return tabela[i].end_relativo;
+				}
+			}
+		}
+				i++;
+	}
+				
+					return NAO_EXISTE;
+}
+
+
+
 void alocaTabelaSimbolos()
 {
   tabela = (simbolo *) malloc(MAXLENGTH * sizeof(simbolo)); 
@@ -40,7 +62,7 @@ int insere (simbolo p)
 	 {
 		 /*se as variaveis tem o mesmo tipo e pertencem ao mesmo escopo. ERRO: redeclaracao de variavel*/
 		 while(i<numero_simbolos && strcmp(tabela[i].nome,p.nome)==0){
-			if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && (p.tipo!=PARAM_INT || p.tipo!=PARAM_REAL))
+			if(tabela[i].tipo == p.tipo && tabela[i].contexto == p.contexto && p.tipo!=PARAM_INT && p.tipo!=PARAM_REAL)
 				return REDECLARACAO;
 			else if(tabela[i].contexto == p.contexto && (p.tipo==PARAM_INT || p.tipo==PARAM_REAL) && strcmp(tabela[i].procedure,p.procedure)==0)
 				return REDECLARACAO_PARAM;
@@ -95,7 +117,6 @@ int buscaSimbolo(simbolo *p)
 {
 	int i=0;
 	fflush(stdout);
-// 	printf("Simbolo: %s, contexto: %d, compare: %d num_simbolos: %d, var real: %d, x tipo: %d\n", p->nome, p->contexto, strcmp("x",p->nome), numero_simbolos, VAR_REAL, tabela[1].tipo);
 	while(i<numero_simbolos && strcmp(tabela[i].nome,p->nome)<=0){
 // 		printf("Simbolo: %s Contexto: %d\n", tabela[i].nome,tabela[i].contexto);
 		if((tabela[i].tipo==VAR_INT || tabela[i].tipo==VAR_REAL || tabela[i].tipo==CONST_INT || tabela[i].tipo==CONST_REAL || tabela[i].tipo==PARAM_INT || tabela[i].tipo==PARAM_REAL)){
@@ -118,7 +139,19 @@ int buscaSimbolo(simbolo *p)
 		}
 		i++;
 	}
-	return NAO_EXISTE;
+		return NAO_EXISTE;int buscaTipoParam(char *procedure,int ordem)
+		{
+			int i=0;
+			while(i<numero_simbolos){
+				if(strcmp(tabela[i].procedure,procedure)==0 && tabela[i].ordem==ordem){
+					if(tabela[i].tipo==PARAM_INT) return INTEGER;
+			   if(tabela[i].tipo==PARAM_REAL) return REAL;
+				}
+						i++;
+			}
+					
+						return NAO_EXISTE;
+		}
 }
 
 int buscaTipoVarCons(char *nome,int contexto, char *procedure)
@@ -223,11 +256,7 @@ int insereProcedure (char *nome, int contexto, int linha)
 	retorno = insere(p);
 	if(retorno ==OK)
 		++numero_simbolos;
-// 	int i;
-// 	for(i=0;i<numero_simbolos; i++){
-// 		printf("|%s|\n",tabela[i].nome);
-// 	}
-// 	
+
 	return retorno;
 }
 
@@ -240,11 +269,28 @@ int buscaProcedure(int i)
 
 }
 
-void atualizaPosicaoProcedure(int posicaoTabela, int novaPosicao)
+void atualizaPosicaoProcedure(char *nome,int linhass)
 {
-	tabela[posicaoTabela].valori = novaPosicao;
+	int i=0;
+	while(i<numero_simbolos)
+	{
+		if(strcmp(tabela[i].nome,nome)==0 && tabela[i].tipo==PROCEDURE)
+			tabela[i].valori = linhass;
+		++i;
+	}
 	
-	
+}
+
+int getPosicaoProcedure(char *nome)
+{
+	int i=0;
+	while(i<numero_simbolos)
+	{
+		if(strcmp(tabela[i].nome,nome)==0 && tabela[i].tipo==PROCEDURE)
+			return tabela[i].valori;
+		++i;
+	}
+	return 0;
 }
 
 int retornaTamanhoTabela()
@@ -316,7 +362,8 @@ int insereParamInt (char *nome, int contexto, char *proc, int ordem)
 	p.contexto = contexto;
 	p.end_relativo=getEndRelativo();
 	p.ordem=ordem;
-	p.procedure=proc;
+	p.procedure = malloc(32*sizeof(char));
+	strcpy(p.procedure,proc);
 	p.valori=-1;
 	p.valorf=-1.0;
 	retorno = insere(p);
@@ -343,7 +390,8 @@ int insereParamReal (char *nome, int contexto, char *proc, int ordem)
 	p.contexto = contexto;
 	p.end_relativo=getEndRelativo();
 	p.ordem=ordem;
-	p.procedure=proc;
+	p.procedure = malloc(32*sizeof(char));
+	strcpy(p.procedure,proc);
 	p.valori=-1;
 	p.valorf=-1.0;
 	retorno = insere(p);
@@ -360,6 +408,7 @@ int insereParamReal (char *nome, int contexto, char *proc, int ordem)
 	}
 	return retorno;
 }
+
 
 int removeTabela(simbolo p)
 {
@@ -383,6 +432,5 @@ void printTabela(){
 	printf("|Nro\tTipo\tNome\t\tValor Int\tValor Float\tEnd Relativo\tContexto\tProcedure\tOrdem\t|\n");
 	for(i=0;i<numero_simbolos; i++){
 		printf("|%d\t%d\t%s\t%8d\t%lf\t%d\t\t%d\t%16s %8d\t|\n",i,tabela[i].tipo,tabela[i].nome, tabela[i].valori, tabela[i].valorf, tabela[i].end_relativo, tabela[i].contexto,tabela[i].procedure, tabela[i].ordem);
-
 	}
 }
