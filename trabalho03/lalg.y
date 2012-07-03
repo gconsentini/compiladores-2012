@@ -59,7 +59,7 @@
 	int numerrors=0;
 	int contexto=0;
 	int ret, contparametros;
-	int retorno_if=0,comeco_while=0,retorno_while=0,comeco_repeat=0;
+	int retorno_if=0;
 	int linha_desvio;
 	extern int num_lines;
 	char listavar[400];
@@ -72,6 +72,8 @@
 	int num_procedimento=0;
 	int prox_linha_vet=0;
 	int posicaoPusher=0;
+	int comeco_repeat[64], i_repeat=0;
+	int comeco_while[64], retorno_while[64], i_com_while=0, i_ret_while=0;
 	
 
 	FILE *code_file;
@@ -91,7 +93,6 @@
 	void insereVetor(char *comando, int posicao)
 	{
 		register int i=0;
-		printf("%s ",comando);
 		if(numerrors==0)
 		{
 			for(i=prox_linha_vet; i>posicao; i--)
@@ -100,8 +101,9 @@
 			}
 			strcpy(code_vet[posicao],comando);
 			prox_linha_vet++;
+			//printf("%s\n",comando);
 		}
-		printf("%s\n",comando);
+		
 	}
 	
 	void gravaVetor()
@@ -593,11 +595,12 @@ cmd: readln_ abre_par variaveis fecha_par {
 											}
 											listavar[0]='\0';	
 										 } |
-	repeat_ { comeco_repeat = prox_linha_vet; } comandos until_ condicao {
-										sprintf(comando,"DSVF %d",getNumLinha(comeco_repeat)+1);
+	repeat_ { comeco_repeat[i_repeat++] = prox_linha_vet; } comandos until_ condicao {
+										sprintf(comando,"DSVF %d",comeco_repeat[--i_repeat]);
 										insereVetor(comando,prox_linha_vet);
 										} |
-	repeat_ { comeco_repeat = prox_linha_vet; } comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
+	repeat_ { comeco_repeat[i_repeat++] = prox_linha_vet; } comandos error condicao { yyerror("Expected: 'until'"); yyclearin; } |
+
 	if_ condicao then_ { retorno_if = prox_linha_vet; } cmd pfalse |
 	id atribuicao expressao { 
 								if(busca($1,ATTR,contexto)==CONST_FALSE){
@@ -663,13 +666,20 @@ cmd: readln_ abre_par variaveis fecha_par {
 						listavar[0]='\0';
 					}
 				 } |
-	while_ {comeco_while = prox_linha_vet;} condicao do_ {retorno_while = prox_linha_vet;} cmd {escreveNaLinha(retorno_while,"DSVF",getNumLinha(prox_linha_vet)+3);
-										sprintf(comando,"DSVI %d",getNumLinha(comeco_while)+1);
-										insereVetor(comando,prox_linha_vet);/*Escreve na linha atual o retorno do while*/
-									}   |
+while_ {comeco_while[i_com_while++] = prox_linha_vet;} cont_while  | 
 	if_ condicao error { yyerror("Expected: 'then'"); yyclearin; } cmd pfalse |
-	while_ condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
+	while_ {comeco_while[i_com_while] = prox_linha_vet;} condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd |
 	begin_ comandos end_;
+
+cont_while: condicao do_ {retorno_while[i_ret_while++] = prox_linha_vet;} cmd 
+					{
+						sprintf(comando,"DSVF %d",prox_linha_vet+3+i_ret_while);
+						insereVetor(comando,retorno_while[--i_ret_while]);
+						
+						sprintf(comando,"DSVI %d",comeco_while[--i_com_while]+2+i_com_while);
+						insereVetor(comando,prox_linha_vet);/*Escreve na linha atual o retorno do while*/
+					} |
+	    condicao error { yyerror("Expected: 'do'"); yyclearin; } cmd;
 
 condicao: expressao relacao expressao {
 											if($2==CPIG) insereVetor("CPIG",prox_linha_vet);

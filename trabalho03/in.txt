@@ -15,6 +15,22 @@ begin
 end;
 begin
 	proc4(b);
+	while b<c do
+	begin
+		while c<b do
+		begin
+			c:=0;
+		end;
+		b:=1;
+		c:=2;
+	end;
 	proc4(c);
+	repeat
+		b:=1;
+		repeat
+			c:=1;
+		until c<33;
+		c:=b;
+	until b<10;
 end.
 
